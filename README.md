@@ -25,6 +25,7 @@
 ---
 
 ## Project Structure
+
 pixshare-app/
 ├─ backend/
 │ ├─ app.py
