@@ -22,29 +22,6 @@
 - **Authentication:** JWT
 - **Containerization:** Docker, Docker Compose
 
----
-
-## Project Structure
-
-pixshare-app/
-├─ backend/
-│ ├─ app.py
-│ ├─ config.py
-│ ├─ models.py
-│ ├─ requirements.txt
-│ ├─ update_creator.py
-│ └─ Dockerfile
-├─ frontend/
-│ ├─ index.html
-│ ├─ Gallery.html
-│ ├─ Login.html
-│ ├─ Creator.html
-│ ├─ Auth.js
-│ ├─ style.css
-│ └─ Mjb.jpg
-├─ docker-compose.yml
-└─ .gitignore
----
 
 ## Installation
 
