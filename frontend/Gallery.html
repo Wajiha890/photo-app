@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PixShare — Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+
+    body { background: var(--ink); }
+
+    .page { max-width: 1380px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+
+    /* ══ HERO HEADER ══ */
+    .gallery-hero {
+      padding: 4rem 1rem 3rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .gh-eyebrow {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .gh-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 700; line-height: 0.95;
+      margin-bottom: 1rem;
+    }
+    .gh-title em { color: var(--gold); font-style: italic; }
+
+    .gh-sub {
+      color: var(--muted); font-size: 0.95rem; font-weight: 300;
+      margin-bottom: 2.5rem;
+    }
+
+    /* Search bar */
+    .search-wrap {
+      max-width: 560px; margin: 0 auto;
+    }
+
+    .search-box {
+      display: flex; align-items: center;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      overflow: hidden;
+      transition: border-color 0.22s, box-shadow 0.22s;
+    }
+    .search-box:focus-within {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px var(--gold-glow);
+    }
+
+    .search-icon {
+      padding: 0 0 0 1.35rem;
+      color: var(--muted); font-size: 1rem; flex-shrink: 0;
+    }
+
+    .search-box input {
+      flex: 1; padding: 0.9rem 1rem;
+      background: transparent; border: none;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif; font-size: 0.9rem;
+      outline: none;
+    }
+    .search-box input::placeholder { color: var(--muted); font-weight: 300; }
+
+    .search-btn {
+      background: linear-gradient(135deg, var(--gold-hi), var(--gold), var(--gold-lo));
+      color: #09070d;
+      border: none; padding: 0.6rem 1.5rem;
+      font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; border-radius: 100px; margin: 5px;
+      transition: box-shadow 0.2s;
+    }
+    .search-btn:hover { box-shadow: 0 4px 18px rgba(201,168,76,0.4); }
+
+    .clear-btn {
+      display: none; margin: 0.8rem auto 0;
+      background: none; border: 1px solid var(--border);
+      color: var(--muted); font-size: 0.78rem;
+      padding: 0.32rem 0.9rem;
+      border-radius: 20px; cursor: pointer;
+      font-family: 'Outfit', sans-serif; transition: color 0.2s;
+    }
+    .clear-btn:hover { color: var(--text); }
+    .clear-btn.show { display: block; }
+
+    /* ══ GALLERY BAR ══ */
+    .g-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 0.5rem 0 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .g-bar-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem; font-weight: 600;
+    }
+    .g-count {
+      font-size: 0.8rem; color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      padding: 0.3rem 0.9rem; border-radius: 100px;
+    }
+
+    /* ══ GALLERY GRID ══ */
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.2rem;
+    }
+
+    /* PHOTO CARD */
+    .photo-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.32s cubic-bezier(.16,1,.3,1), box-shadow 0.32s, border-color 0.32s;
+      position: relative;
+      animation: cardIn 0.5s ease both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(20px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .photo-card:hover {
+      transform: translateY(-8px) scale(1.01);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 0 0 1px rgba(201,168,76,0.2);
+      border-color: rgba(201,168,76,0.25);
+    }
+
+    .card-img-wrap {
+      position: relative; overflow: hidden;
+    }
+
+    .card-img {
+      width: 100%; aspect-ratio: 4/3;
+      object-fit: cover; display: block;
+      background: var(--panel2);
+      transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+    }
+    .photo-card:hover .card-img { transform: scale(1.07); }
+
+    .card-no-img {
+      width: 100%; aspect-ratio: 4/3;
+      background: var(--panel2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.8rem; color: var(--muted);
+    }
+
+    /* Quick overlay on hover */
+    .card-hover-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(6,6,14,0.75) 0%, transparent 50%);
+      opacity: 0; transition: opacity 0.35s;
+      display: flex; align-items: flex-end;
+      padding: 1rem;
+    }
+    .photo-card:hover .card-hover-overlay { opacity: 1; }
+    .overlay-tag {
+      font-size: 0.78rem; font-weight: 600; color: white;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
+      padding: 0.3rem 0.8rem; border-radius: 100px;
+    }
+
+    .card-body { padding: 1rem 1.1rem 1.1rem; }
+
+    .card-title {
+      font-weight: 700; font-size: 0.95rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 0.25rem;
+    }
+
+    .card-cap {
+      font-size: 0.8rem; color: var(--muted); font-weight: 300;
+      display: -webkit-box;
+      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      min-height: 2.1em; margin-bottom: 0.75rem; line-height: 1.5;
+    }
+
+    .card-foot {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+
+    .card-location {
+      font-size: 0.75rem; color: var(--muted);
+      display: flex; align-items: center; gap: 0.25rem;
+    }
+
+    .card-rating {
+      display: flex; align-items: center; gap: 0.3rem;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .card-stars {
+      display: flex; gap: 1px;
+    }
+    .cstar { font-size: 0.72rem; }
+    .cstar.on { color: var(--star); }
+    .cstar.off { color: var(--star-dim); }
+
+    /* ══ IMAGE MODAL ══ */
+    .img-modal .modal {
+      max-width: 920px;
+      border-radius: 24px;
+    }
+
+    .modal-split {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+    }
+    @media(max-width:660px) { .modal-split { grid-template-columns: 1fr; } }
+
+    .modal-img-side {
+      position: relative; overflow: hidden;
+      border-radius: 0 0 0 20px;
+    }
+    @media(max-width:660px) { .modal-img-side { border-radius: 0; } }
+
+    .modal-photo {
+      width: 100%; aspect-ratio: 1;
+      object-fit: cover; display: block;
+    }
+    @media(max-width:660px) { .modal-photo { aspect-ratio: 4/3; } }
+
+    .modal-photo-overlay {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 40%;
+      background: linear-gradient(to top, rgba(6,6,14,0.7), transparent);
+      pointer-events: none;
+    }
+
+    .modal-side {
+      padding: 1.6rem;
+      overflow-y: auto;
+      max-height: 600px;
+      display: flex; flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .modal-caption {
+      color: var(--text-dim); font-size: 0.9rem;
+      line-height: 1.7; font-weight: 300;
+    }
+
+    .modal-meta-grid {
+      display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .meta-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.83rem; color: var(--muted);
+    }
+    .meta-row .meta-icon { font-size: 0.9rem; }
+
+    .divider-line {
+      height: 1px; background: var(--border); border: none;
+    }
+
+    .sec-lbl {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    /* Star rating */
+    .i-stars { display: flex; gap: 4px; }
+    .i-star {
+      font-size: 1.55rem; cursor: pointer; color: var(--star-dim);
+      transition: color 0.13s, transform 0.16s cubic-bezier(.4,0,.2,1);
+      line-height: 1; user-select: none;
+    }
+    .i-star:hover, .i-star.on { color: var(--star); }
+    .i-star:hover { transform: scale(1.3) rotate(-8deg); }
+
+    .rating-label {
+      font-size: 0.82rem; color: var(--muted);
+      margin-top: 0.4rem;
+    }
+    .avg-rating-display {
+      font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem;
+    }
+    .your-rating-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.25);
+      color: var(--star); font-size: 0.8rem; font-weight: 600;
+      padding: 0.28rem 0.8rem; border-radius: 100px;
+      margin-top: 0.4rem;
+    }
+
+    /* Comments */
+    .c-scroll {
+      max-height: 180px; overflow-y: auto;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      padding-right: 4px;
+    }
+    .c-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 0.65rem 0.85rem;
+      font-size: 0.83rem;
+    }
+    .c-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.2rem; }
+    .c-author { font-weight: 700; color: var(--consumer); font-size: 0.82rem; }
+    .c-time { font-size: 0.72rem; color: var(--muted); }
+    .c-text { color: var(--text-dim); line-height: 1.5; }
+    .c-empty { font-size: 0.82rem; color: var(--muted); padding: 0.5rem 0; }
+
+    .c-form {
+      display: flex; gap: 0.5rem; margin-top: 0.4rem;
+    }
+    .c-form .input {
+      flex: 1; padding: 0.62rem 0.9rem; font-size: 0.84rem;
+      border-radius: var(--radius-sm);
+    }
+    .c-form .btn { padding: 0.62rem 1.1rem; font-size: 0.82rem; flex-shrink: 0; }
+
+    @media(max-width:600px) {
+      .gallery { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="gallery.html" class="brand">
+    <div class="brand-gem">📸</div>
+    PixShare
+  </a>
+  <div class="nav-right">
+    <span class="nav-username" id="nav-user"></span>
+    <span class="role-badge consumer">Explorer</span>
+    <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="gallery-hero">
+    <p class="gh-eyebrow">Community Gallery</p>
+    <h1 class="gh-title">Discover <em>beautiful</em><br>moments</h1>
+    <p class="gh-sub">Photos shared by our creators — browse, comment &amp; rate</p>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input id="sq" type="text" placeholder="Search by title, location, people…"
+          onkeydown="if(event.key==='Enter') doSearch()"/>
+        <button class="search-btn" onclick="doSearch()">Search</button>
+      </div>
+      <button class="clear-btn" id="clear-btn" onclick="clearSearch()">✕ Clear search</button>
+    </div>
+  </div>
+
+  <div class="g-bar">
+    <span class="g-bar-title" id="g-head">Community Gallery</span>
+    <span class="g-count" id="g-count"></span>
+  </div>
+
+  <div id="gallery" class="gallery">
+    <div style="grid-column:1/-1"><div class="loader"><div class="spinner"></div></div></div>
+  </div>
+
+</div>
+
+<!-- IMAGE MODAL -->
+<div id="img-modal" class="modal-overlay img-modal" onclick="bgClose(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="m-title">—</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-split">
+
+      <div class="modal-img-side">
+        <img id="m-photo" class="modal-photo" src="" alt="">
+        <div class="modal-photo-overlay"></div>
+      </div>
+
+      <div class="modal-side">
+        <div id="m-cap" class="modal-caption"></div>
+
+        <div id="m-meta" class="modal-meta-grid"></div>
+
+        <hr class="divider-line">
+
+        <!-- RATING -->
+        <div>
+          <div class="sec-lbl">Your Rating</div>
+          <div id="star-row" class="i-stars"></div>
+          <div id="your-rating"></div>
+          <div id="avg-info" class="avg-rating-display"></div>
+        </div>
+
+        <hr class="divider-line">
+
+        <!-- COMMENTS -->
+        <div>
+          <div class="sec-lbl">Comments <span id="c-count" style="color:var(--muted);font-weight:400;"></span></div>
+          <div id="c-list" class="c-scroll"></div>
+          <div class="c-form" style="margin-top:0.8rem;">
+            <input class="input" id="c-inp" placeholder="Write a comment…"
+              onkeydown="if(event.key==='Enter') postComment()"/>
+            <button class="btn btn-primary btn-sm" onclick="postComment()">Post</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="auth.js"></script>
+<script>
+  if (!Auth.loggedIn()) location.href = 'login.html';
+  if (Auth.role() === 'creator') location.href = 'creator.html';
+  document.getElementById('nav-user').textContent = Auth.username();
+
+  let curId = null, curRating = 0;
+
+  /* ═══ GALLERY ═══ */
+  function renderGallery(imgs) {
+    const g   = document.getElementById('gallery');
+    const cnt = document.getElementById('g-count');
+
+    if (!imgs || !imgs.length) {
+      g.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <span class="empty-icon">📷</span>
+        <h3>No photos yet</h3>
+        <p>Creators are uploading — check back soon!</p></div>`;
+      cnt.textContent = ''; return;
+    }
+
+    cnt.textContent = imgs.length + ' photo' + (imgs.length !== 1 ? 's' : '');
+
+    g.innerHTML = imgs.map((img, idx) => {
+      const stars = [1,2,3,4,5].map(i =>
+        `<span class="cstar ${i <= Math.round(img.avg_rating) ? 'on' : 'off'}">★</span>`
+      ).join('');
+      const delay = Math.min(idx * 0.04, 0.5);
+      return `<div class="photo-card" style="animation-delay:${delay}s" onclick="openModal(${img.id})">
+        <div class="card-img-wrap">
+          ${img.image_url
+            ? `<img class="card-img" src="${esc(img.image_url)}" alt="${esc(img.title)}" loading="lazy"
+                onerror="this.outerHTML='<div class=card-no-img>🌄</div>'">`
+            : `<div class="card-no-img">🌄</div>`}
+          <div class="card-hover-overlay">
+            <span class="overlay-tag">View Photo</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="card-title">${esc(img.title)}</div>
+          <div class="card-cap">${esc(img.caption || '')}</div>
+          <div class="card-foot">
+            <span class="card-location">${img.location ? '📍 ' + esc(img.location) : '📷 ' + esc(img.uploader)}</span>
+            <span class="card-rating">
+              <span class="card-stars">${stars}</span>
+              ${img.avg_rating > 0 ? '<span>' + img.avg_rating.toFixed(1) + '</span>' : ''}
+            </span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadAll() {
+    const { ok, data } = await apiFetch('/images');
+    if (ok) renderGallery(data);
+    else toast('Failed to load gallery', 'error');
+  }
+
+  async function doSearch() {
+    const q = document.getElementById('sq').value.trim();
+    if (!q) { loadAll(); return; }
+    document.getElementById('gallery').innerHTML = `<div style="grid-column:1/-1"><div class="loader"><div class="spinner"></div></div></div>`;
+    document.getElementById('g-head').textContent = `Results for "${q}"`;
+    document.getElementById('clear-btn').classList.add('show');
+    const { ok, data } = await apiFetch('/images/search?q=' + encodeURIComponent(q));
+    if (ok) renderGallery(data);
+    else toast('Search failed', 'error');
+  }
+
+  function clearSearch() {
+    document.getElementById('sq').value = '';
+    document.getElementById('g-head').textContent = 'Community Gallery';
+    document.getElementById('clear-btn').classList.remove('show');
+    loadAll();
+  }
+
+  /* ═══ MODAL ═══ */
+  async function openModal(id) {
+    curId = id; curRating = 0;
+    const { ok, data: img } = await apiFetch('/images/' + id);
+    if (!ok) { toast('Failed to load', 'error'); return; }
+
+    document.getElementById('m-title').textContent = img.title;
+    const ph = document.getElementById('m-photo');
+    ph.src = img.image_url || ''; ph.alt = img.title;
+
+    document.getElementById('m-cap').textContent = img.caption || '';
+
+    const meta = [];
+    if (img.location) meta.push(`<div class="meta-row"><span class="meta-icon">📍</span>${esc(img.location)}</div>`);
+    if (img.people)   meta.push(`<div class="meta-row"><span class="meta-icon">👥</span>${esc(img.people)}</div>`);
+    meta.push(`<div class="meta-row"><span class="meta-icon">📷</span>by ${esc(img.uploader)}</div>`);
+    meta.push(`<div class="meta-row"><span class="meta-icon">🗓</span>${fmtDate(img.created_at)}</div>`);
+    document.getElementById('m-meta').innerHTML = meta.join('');
+
+    renderStars(0, img);
+    await loadComments(id);
+    document.getElementById('c-inp').value = '';
+    document.getElementById('img-modal').classList.add('open');
+  }
+
+  function renderStars(sel, imgData) {
+    const row = document.getElementById('star-row');
+    row.innerHTML = [1,2,3,4,5].map(v =>
+      `<span class="i-star ${v <= sel ? 'on' : ''}"
+        onmouseover="hlStars(${v})"
+        onmouseout="hlStars(${curRating})"
+        onclick="submitRating(${v})">★</span>`
+    ).join('');
+
+    const yr = document.getElementById('your-rating');
+    yr.innerHTML = curRating > 0
+      ? `<div class="your-rating-badge">⭐ Your rating: ${curRating}/5</div>`
+      : `<div class="rating-label">Tap a star to rate</div>`;
+
+    if (imgData) {
+      document.getElementById('avg-info').textContent = imgData.avg_rating > 0
+        ? `Community avg: ${imgData.avg_rating.toFixed(1)} / 5 (${imgData.rating_count} ${imgData.rating_count === 1 ? 'vote' : 'votes'})`
+        : 'No community ratings yet';
+    }
+  }
+
+  function hlStars(v) {
+    document.querySelectorAll('.i-star').forEach((el, i) => {
+      el.style.color = i < v ? 'var(--star)' : 'var(--star-dim)';
+      el.style.transform = i < v ? 'scale(1.1)' : '';
+    });
+  }
+
+  async function submitRating(v) {
+    curRating = v;
+    renderStars(v, null);
+    const { ok } = await apiFetch('/ratings', {
+      method: 'POST', headers: Auth.headers(),
+      body: JSON.stringify({ image_id: curId, value: v })
+    });
+    if (ok) {
+      toast('Rated ' + v + ' ★', 'success');
+      const r = await apiFetch('/ratings/' + curId);
+      if (r.ok) {
+        document.getElementById('avg-info').textContent =
+          `Community avg: ${r.data.avg.toFixed(1)} / 5 (${r.data.count} votes)`;
+      }
+    } else toast('Could not save rating', 'error');
+  }
+
+  async function loadComments(id) {
+    const list = document.getElementById('c-list');
+    list.innerHTML = `<div class="c-empty">Loading…</div>`;
+    const { ok, data } = await apiFetch('/comments/' + id);
+    const cnt = document.getElementById('c-count');
+    if (!ok || !data.length) {
+      list.innerHTML = `<div class="c-empty">No comments yet. Be the first!</div>`;
+      cnt.textContent = ''; return;
+    }
+    cnt.textContent = `(${data.length})`;
+    list.innerHTML = data.map(c => `
+      <div class="c-item">
+        <div class="c-row">
+          <span class="c-author">${esc(c.username)}</span>
+          <span class="c-time">${fmtDate(c.created_at)}</span>
+        </div>
+        <div class="c-text">${esc(c.text)}</div>
+      </div>`).join('');
+    list.scrollTop = list.scrollHeight;
+  }
+
+  async function postComment() {
+    const inp = document.getElementById('c-inp');
+    const text = inp.value.trim(); if (!text) return;
+    const { ok, data } = await apiFetch('/comments', {
+      method: 'POST', headers: Auth.headers(),
+      body: JSON.stringify({ image_id: curId, text })
+    });
+    if (ok) { inp.value = ''; toast('Comment posted!', 'success'); await loadComments(curId); }
+    else toast(data.message || 'Failed to post', 'error');
+  }
+
+  function closeModal() { document.getElementById('img-modal').classList.remove('open'); }
+  function bgClose(e) { if (e.target.id === 'img-modal') closeModal(); }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(d) {
+    if (!d) return '';
+    return new Date(d).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+  }
+
+  function toast(msg, type) {
+    const t = document.createElement('div');
+    t.className = `toast ${type}`; t.textContent = msg;
+    let c = document.getElementById('toast-container');
+    if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.append(c); }
+    c.append(t); setTimeout(() => t.remove(), 3500);
+  }
+
+  loadAll();
+</script>
+</body>
+</html>

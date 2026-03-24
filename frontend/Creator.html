@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PixShare — Creator Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+
+    body { background: var(--ink); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 1.75rem;
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 2.5rem 1.75rem 5rem;
+      align-items: start;
+    }
+    @media(max-width:960px) { .layout { grid-template-columns: 1fr; } }
+
+    /* ══ UPLOAD PANEL ══ */
+    .upload-panel {
+      background: var(--panel);
+      border: 1px solid rgba(201,168,76,0.15);
+      border-radius: 22px;
+      overflow: hidden;
+      position: sticky;
+      top: 84px;
+    }
+
+    .upload-panel-header {
+      padding: 1.6rem 1.75rem 1.4rem;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(to bottom, rgba(201,168,76,0.06), transparent);
+    }
+
+    .upload-panel-header h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 600;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+
+    .upload-panel-body { padding: 1.5rem 1.75rem 1.75rem; }
+
+    /* Preview box */
+    .preview-box {
+      width: 100%;
+      aspect-ratio: 16/9;
+      background: rgba(255,255,255,0.03);
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--muted);
+      overflow: hidden;
+      margin-bottom: 1.4rem;
+      position: relative;
+      transition: border-color 0.25s;
+    }
+    .preview-box.has-url {
+      border-color: rgba(201,168,76,0.35);
+      border-style: solid;
+    }
+    .preview-box img {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+    }
+    .preview-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      color: var(--muted);
+    }
+    .preview-placeholder span { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; }
+
+    .upload-fields { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.25rem; }
+
+    .upload-btn {
+      width: 100%; padding: 1rem;
+      background: linear-gradient(135deg, var(--gold-hi), var(--gold), var(--gold-lo));
+      color: #09070d;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem; font-weight: 700;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      border: none; border-radius: 12px;
+      cursor: pointer; position: relative; overflow: hidden;
+      transition: all 0.25s;
+      box-shadow: 0 4px 22px rgba(201,168,76,0.32), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .upload-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(201,168,76,0.5); }
+    .upload-btn:active { transform: none; }
+    .upload-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    /* ══ MAIN CONTENT ══ */
+
+    /* Stats row */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.4rem 1.5rem;
+      position: relative; overflow: hidden;
+      transition: border-color 0.25s, transform 0.25s;
+    }
+    .stat-card:hover { border-color: var(--border-hi); transform: translateY(-2px); }
+
+    .stat-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0.5;
+    }
+
+    .stat-ico { font-size: 1.5rem; margin-bottom: 0.8rem; display: block; }
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 700;
+      color: var(--gold); line-height: 1;
+      margin-bottom: 0.3rem;
+    }
+    .stat-lbl { font-size: 0.75rem; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+    /* Section header */
+    .section-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1.4rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-hdr h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 600;
+    }
+
+    /* Photos grid */
+    .photos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 1.1rem;
+    }
+
+    .photo-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: transform 0.28s cubic-bezier(.16,1,.3,1), box-shadow 0.28s, border-color 0.28s;
+      animation: cardIn 0.4s ease both;
+    }
+    @keyframes cardIn {
+      from { opacity:0; transform:translateY(16px) scale(0.97); }
+      to   { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .photo-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.18);
+      border-color: rgba(201,168,76,0.2);
+    }
+
+    .pc-img-wrap { overflow: hidden; }
+    .pc-img {
+      width: 100%; aspect-ratio: 4/3;
+      object-fit: cover; display: block;
+      background: var(--panel2);
+      transition: transform 0.5s ease;
+    }
+    .photo-card:hover .pc-img { transform: scale(1.06); }
+    .pc-fallback {
+      width: 100%; aspect-ratio: 4/3;
+      background: var(--panel2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; color: var(--muted);
+    }
+
+    .pc-body { padding: 0.9rem 1rem; }
+    .pc-title {
+      font-weight: 700; font-size: 0.93rem;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 0.2rem;
+    }
+    .pc-meta { font-size: 0.76rem; color: var(--muted); margin-bottom: 0.7rem; }
+
+    .pc-footer {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .pc-stats {
+      display: flex; align-items: center; gap: 0.8rem;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .pc-stat { display: flex; align-items: center; gap: 0.25rem; }
+    .pc-stat .star-val { color: var(--star); font-weight: 600; }
+
+    .pc-actions { display: flex; gap: 0.3rem; }
+
+    .icon-btn {
+      width: 30px; height: 30px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 0.85rem;
+      transition: all 0.2s; color: var(--muted);
+    }
+    .icon-btn.view:hover { background: rgba(201,168,76,0.12); border-color: rgba(201,168,76,0.3); color: var(--gold); }
+    .icon-btn.del:hover  { background: var(--danger-bg); border-color: rgba(224,92,92,0.3); color: var(--danger); }
+
+    /* ══ STATS MODAL ══ */
+    .stats-modal .modal { max-width: 960px; border-radius: 22px; }
+
+    .modal-two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    @media(max-width:700px) { .modal-two-col { grid-template-columns: 1fr; } }
+
+    .modal-left-img {
+      position: relative; overflow: hidden; border-radius: 0 0 0 18px;
+    }
+    .modal-left-img img {
+      width: 100%; height: 100%; min-height: 280px;
+      object-fit: cover; display: block;
+    }
+    .modal-img-info {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      padding: 1.5rem;
+      background: linear-gradient(to top, rgba(6,6,14,0.85), transparent);
+    }
+    .modal-img-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 600; color: white;
+      margin-bottom: 0.3rem;
+    }
+    .modal-avg-rating {
+      display: flex; align-items: baseline; gap: 0.4rem;
+    }
+    .modal-avg-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.8rem; font-weight: 700; color: var(--gold); line-height: 1;
+    }
+    .modal-avg-of { font-size: 0.85rem; color: rgba(255,255,255,0.5); }
+
+    .modal-right-panel {
+      padding: 1.6rem;
+      overflow-y: auto;
+      max-height: 580px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+
+    .detail-section { margin-bottom: 1.6rem; }
+    .detail-section:last-child { margin-bottom: 0; }
+    .detail-title {
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 0.8rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .detail-title::after {
+      content: '';
+      flex: 1; height: 1px; background: var(--border);
+    }
+
+    .rating-pill {
+      display: flex; align-items: center; justify-content: space-between;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      margin-bottom: 0.4rem;
+      font-size: 0.84rem;
+    }
+    .rating-pill .rp-user { font-weight: 600; color: var(--text-dim); }
+    .rating-pill .rp-val { color: var(--star); font-weight: 700; letter-spacing: 0.04em; }
+
+    .comment-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+    .cc-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.35rem; }
+    .cc-author { font-weight: 700; font-size: 0.84rem; color: var(--consumer); }
+    .cc-time { font-size: 0.72rem; color: var(--muted); }
+    .cc-text { font-size: 0.85rem; color: var(--text-dim); line-height: 1.55; }
+
+    .empty-state-sm {
+      color: var(--muted); font-size: 0.84rem;
+      padding: 1rem 0; text-align: center;
+    }
+
+    @media(max-width:600px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .photos-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media(max-width:400px) {
+      .stats-row { grid-template-columns: 1fr; }
+      .photos-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="creator.html" class="brand">
+    <div class="brand-gem">📸</div>
+    PixShare
+  </a>
+  <div class="nav-right">
+    <span class="nav-username" id="nav-username"></span>
+    <span class="role-badge creator">Creator</span>
+    <a href="manage-users.html" class="btn btn-ghost btn-sm">Manage Users</a>
+    <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="layout">
+
+  <!-- ══ LEFT: UPLOAD ══ -->
+  <aside>
+    <div class="upload-panel">
+      <div class="upload-panel-header">
+        <h2>✦ Share a Photo</h2>
+      </div>
+      <div class="upload-panel-body">
+
+        <div class="preview-box" id="preview-box">
+          <div class="preview-placeholder">
+            <span style="font-size:2.2rem;">🖼️</span>
+            <span>Image preview</span>
+          </div>
+        </div>
+
+        <div class="upload-fields">
+          <div class="form-group">
+            <label>Image URL *</label>
+            <input class="input" id="image_url" placeholder="https://images.unsplash.com/…"
+              oninput="updatePreview(this.value)"/>
+          </div>
+          <div class="form-group">
+            <label>Title *</label>
+            <input class="input" id="title" placeholder="Sunset at Santorini"/>
+          </div>
+          <div class="form-group">
+            <label>Caption</label>
+            <textarea class="input" id="caption" placeholder="Golden hour magic…" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input class="input" id="location" placeholder="Santorini, Greece"/>
+          </div>
+          <div class="form-group">
+            <label>People</label>
+            <input class="input" id="people" placeholder="Me &amp; Anna"/>
+          </div>
+        </div>
+
+        <button class="upload-btn" onclick="uploadPhoto()" id="upload-btn">
+          ✦ Share Photo
+        </button>
+
+      </div>
+    </div>
+  </aside>
+
+  <!-- ══ RIGHT: MAIN ══ -->
+  <main>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-ico">🖼️</span>
+        <div class="stat-num" id="stat-photos">—</div>
+        <div class="stat-lbl">Photos</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-ico">💬</span>
+        <div class="stat-num" id="stat-comments">—</div>
+        <div class="stat-lbl">Comments</div>
+      </div>
+      <div class="stat-card">
+        <span class="stat-ico">⭐</span>
+        <div class="stat-num" id="stat-ratings">—</div>
+        <div class="stat-lbl">Ratings</div>
+      </div>
+    </div>
+
+    <div class="section-hdr">
+      <h2>My Photos</h2>
+    </div>
+
+    <div id="photos-grid" class="photos-grid">
+      <div style="grid-column:1/-1"><div class="loader"><div class="spinner"></div></div></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- STATS MODAL -->
+<div id="stats-modal" class="modal-overlay stats-modal" onclick="if(event.target.id==='stats-modal') closeStatsModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Photo Stats</h2>
+      <button class="modal-close" onclick="closeStatsModal()">✕</button>
+    </div>
+    <div class="modal-two-col" id="modal-content"></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="auth.js"></script>
+<script>
+  if (!Auth.loggedIn()) location.href = 'login.html';
+  if (Auth.role() !== 'creator') location.href = 'gallery.html';
+  document.getElementById('nav-username').textContent = Auth.username();
+
+  function updatePreview(url) {
+    const box = document.getElementById('preview-box');
+    if (!url.trim()) {
+      box.innerHTML = '<div class="preview-placeholder"><span style="font-size:2.2rem;">🖼️</span><span>Image preview</span></div>';
+      box.classList.remove('has-url'); return;
+    }
+    box.classList.add('has-url');
+    box.innerHTML = `<img src="${esc(url)}" onerror="this.parentElement.innerHTML='<div class=preview-placeholder><span style=font-size:2rem>❌</span><span>Invalid URL</span></div>';this.parentElement.classList.remove('has-url')">`;
+  }
+
+  async function uploadPhoto() {
+    const title     = document.getElementById('title').value.trim();
+    const image_url = document.getElementById('image_url').value.trim();
+    const caption   = document.getElementById('caption').value.trim();
+    const location  = document.getElementById('location').value.trim();
+    const people    = document.getElementById('people').value.trim();
+    if (!title || !image_url) { toast('Title and Image URL are required', 'error'); return; }
+    const btn = document.getElementById('upload-btn');
+    btn.textContent = 'Uploading…'; btn.disabled = true;
+    const { ok, data } = await apiFetch('/images', {
+      method: 'POST', headers: Auth.headers(),
+      body: JSON.stringify({ title, image_url, caption, location, people })
+    });
+    btn.textContent = '✦ Share Photo'; btn.disabled = false;
+    if (ok) {
+      toast('Photo shared successfully!', 'success');
+      ['title','caption','location','people','image_url'].forEach(id => document.getElementById(id).value = '');
+      updatePreview('');
+      loadMyPhotos();
+    } else toast(data.message || 'Upload failed', 'error');
+  }
+
+  async function loadMyPhotos() {
+    const { ok, data } = await apiFetch('/images');
+    const grid = document.getElementById('photos-grid');
+    if (!ok) { toast('Failed to load photos', 'error'); return; }
+    const mine = data.filter(img => img.uploader === Auth.username());
+    document.getElementById('stat-photos').textContent   = mine.length;
+    document.getElementById('stat-comments').textContent = mine.reduce((s,i) => s + i.comment_count, 0);
+    document.getElementById('stat-ratings').textContent  = mine.reduce((s,i) => s + i.rating_count, 0);
+    if (!mine.length) {
+      grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+        <span class="empty-icon">📸</span>
+        <h3>No photos yet</h3>
+        <p>Share your first moment using the panel on the left.</p></div>`;
+      return;
+    }
+    grid.innerHTML = mine.map((img, idx) => {
+      const delay = Math.min(idx * 0.05, 0.5);
+      return `<div class="photo-card" style="animation-delay:${delay}s">
+        <div class="pc-img-wrap">
+          ${img.image_url
+            ? `<img class="pc-img" src="${esc(img.image_url)}" alt="${esc(img.title)}" loading="lazy"
+                onerror="this.outerHTML='<div class=pc-fallback>🌄</div>'">`
+            : `<div class="pc-fallback">🌄</div>`}
+        </div>
+        <div class="pc-body">
+          <div class="pc-title">${esc(img.title)}</div>
+          <div class="pc-meta">${img.location ? '📍 ' + esc(img.location) : 'No location'}</div>
+          <div class="pc-footer">
+            <div class="pc-stats">
+              <div class="pc-stat">
+                <span>⭐</span>
+                <span class="star-val">${img.avg_rating > 0 ? img.avg_rating.toFixed(1) : '—'}</span>
+              </div>
+              <div class="pc-stat">💬 ${img.comment_count}</div>
+            </div>
+            <div class="pc-actions">
+              <button class="icon-btn view" onclick="viewStats(${img.id})" title="View Stats">📊</button>
+              <button class="icon-btn del" onclick="deletePhoto(${img.id})" title="Delete">🗑</button>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function viewStats(id) {
+    const { ok, data } = await apiFetch(`/images/${id}/stats`, { headers: Auth.headers() });
+    if (!ok) { toast(data?.message || 'Failed to load stats', 'error'); return; }
+
+    const html = `
+      <div class="modal-left-img">
+        <img src="${esc(data.image_url || '')}" alt="${esc(data.title)}"
+          onerror="this.src='https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400'"/>
+        <div class="modal-img-info">
+          <div class="modal-img-title">${esc(data.title)}</div>
+          <div class="modal-avg-rating">
+            <span class="modal-avg-num">${data.avg_rating.toFixed(1)}</span>
+            <span class="modal-avg-of">/ 5 &nbsp;·&nbsp; ${data.rating_count} ${data.rating_count === 1 ? 'rating' : 'ratings'}</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-right-panel">
+        <div class="detail-section">
+          <div class="detail-title">Ratings</div>
+          ${data.ratings.length
+            ? data.ratings.map(r => `
+              <div class="rating-pill">
+                <span class="rp-user">${esc(r.username)}</span>
+                <span class="rp-val">${r.value} ★</span>
+              </div>`).join('')
+            : `<div class="empty-state-sm">No ratings yet.</div>`}
+        </div>
+        <div class="detail-section">
+          <div class="detail-title">Comments (${data.comments.length})</div>
+          ${data.comments.length
+            ? data.comments.map(c => `
+              <div class="comment-card">
+                <div class="cc-header">
+                  <span class="cc-author">${esc(c.username)}</span>
+                  <span class="cc-time">${c.created_at ? new Date(c.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : ''}</span>
+                </div>
+                <div class="cc-text">${esc(c.text)}</div>
+              </div>`).join('')
+            : `<div class="empty-state-sm">No comments yet.</div>`}
+        </div>
+      </div>`;
+
+    document.getElementById('modal-content').innerHTML = html;
+    document.getElementById('stats-modal').classList.add('open');
+  }
+
+  function closeStatsModal() {
+    document.getElementById('stats-modal').classList.remove('open');
+    document.getElementById('modal-content').innerHTML = '';
+  }
+
+  async function deletePhoto(id) {
+    if (!confirm('Delete this photo? This cannot be undone.')) return;
+    const { ok } = await apiFetch(`/images/${id}`, { method: 'DELETE', headers: Auth.headers() });
+    if (ok) { toast('Photo deleted', 'success'); loadMyPhotos(); }
+    else toast('Failed to delete photo', 'error');
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function toast(msg, type) {
+    const t = document.createElement('div');
+    t.className = `toast ${type}`; t.textContent = msg;
+    let c = document.getElementById('toast-container');
+    if (!c) { c = document.createElement('div'); c.id = 'toast-container'; document.body.append(c); }
+    c.append(t); setTimeout(() => t.remove(), 3500);
+  }
+
+  loadMyPhotos();
+</script>
+</body>
+</html>

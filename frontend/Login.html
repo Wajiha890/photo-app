@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PixShare — Sign In</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:    #07070f;
+      --card:   rgba(13,13,26,0.88);
+      --panel:  rgba(22,22,42,0.6);
+      --border: rgba(201,168,76,0.14);
+      --border2: rgba(255,255,255,0.06);
+      --gold:   #c9a84c;
+      --gold2:  #d4a843;
+      --gold3:  #b8932a;
+      --glow:   rgba(201,168,76,0.25);
+      --teal:   #4dd9c8;
+      --danger: #e05c5c;
+      --text:   #edeaf8;
+      --dim:    #a8a4c0;
+      --muted:  #5a587a;
+      --weak:   #2a2a45;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ink);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ═══ FULL-SCREEN BG ═══ */
+    .bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .bg-mosaic {
+      position: absolute;
+      inset: -80px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 5px;
+      transform: scale(1.08) rotate(-2deg);
+      filter: blur(4px) brightness(0.15) saturate(0.5);
+    }
+
+    .bg-mosaic div { background-size: cover; background-position: center; }
+    .bg-mosaic div:nth-child(1)  { background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400'); }
+    .bg-mosaic div:nth-child(2)  { background-image: url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400'); }
+    .bg-mosaic div:nth-child(3)  { background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400'); }
+    .bg-mosaic div:nth-child(4)  { background-image: url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400'); }
+    .bg-mosaic div:nth-child(5)  { background-image: url('https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=400'); }
+    .bg-mosaic div:nth-child(6)  { background-image: url('https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400'); }
+    .bg-mosaic div:nth-child(7)  { background-image: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400'); }
+    .bg-mosaic div:nth-child(8)  { background-image: url('https://images.unsplash.com/photo-1487621167305-5d1b91ef3a08?w=400'); }
+    .bg-mosaic div:nth-child(9)  { background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400'); }
+    .bg-mosaic div:nth-child(10) { background-image: url('https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400'); }
+    .bg-mosaic div:nth-child(11) { background-image: url('https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=400'); }
+    .bg-mosaic div:nth-child(12) { background-image: url('https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=400'); }
+    .bg-mosaic div:nth-child(13) { background-image: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400'); }
+    .bg-mosaic div:nth-child(14) { background-image: url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=400'); }
+    .bg-mosaic div:nth-child(15) { background-image: url('https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=400'); }
+    .bg-mosaic div:nth-child(16) { background-image: url('https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=400'); }
+    .bg-mosaic div:nth-child(17) { background-image: url('https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=400'); }
+    .bg-mosaic div:nth-child(18) { background-image: url('https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=400'); }
+    .bg-mosaic div:nth-child(19) { background-image: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=400'); }
+    .bg-mosaic div:nth-child(20) { background-image: url('https://images.unsplash.com/photo-1487621167305-5d1b91ef3a08?w=400'); }
+
+    .bg-vignette {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 80% at 50% 50%,
+        rgba(7,7,15,0.1) 0%,
+        rgba(7,7,15,0.75) 55%,
+        rgba(7,7,15,0.97) 100%);
+    }
+
+    /* Animated orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(70px);
+    }
+    .orb-gold {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(201,168,76,0.16) 0%, transparent 65%);
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      animation: breathe 8s ease-in-out infinite alternate;
+    }
+    .orb-teal {
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(77,217,200,0.1) 0%, transparent 65%);
+      bottom: -80px; right: -60px;
+      animation: drift 11s ease-in-out infinite alternate;
+    }
+    @keyframes breathe {
+      from { transform: translate(-50%,-50%) scale(0.9); opacity: 0.7; }
+      to   { transform: translate(-50%,-50%) scale(1.15); opacity: 1; }
+    }
+    @keyframes drift {
+      from { transform: translate(0,0); }
+      to   { transform: translate(-50px, -40px); }
+    }
+
+    /* ═══ CARD ═══ */
+    .auth-wrap {
+      position: relative;
+      z-index: 10;
+      width: min(460px, 94vw);
+      animation: enterCard 0.9s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    @keyframes enterCard {
+      from { opacity: 0; transform: translateY(44px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Brand header */
+    .brand-header {
+      text-align: center;
+      margin-bottom: 1.6rem;
+      animation: slideDown 0.7s 0.08s ease both;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      text-decoration: none;
+    }
+
+    .brand-gem {
+      width: 46px; height: 46px;
+      background: linear-gradient(140deg, #d4a843, #c9a84c 50%, #a8882a);
+      border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 6px 28px rgba(201,168,76,0.38), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+
+    .brand-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--gold);
+      letter-spacing: 0.05em;
+    }
+
+    /* Card body */
+    .card {
+      background: var(--card);
+      backdrop-filter: blur(28px) saturate(1.6);
+      -webkit-backdrop-filter: blur(28px) saturate(1.6);
+      border: 1px solid var(--border);
+      border-radius: 26px;
+      padding: 2.6rem 2.8rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 32px 96px rgba(0,0,0,0.75),
+        0 0 100px rgba(201,168,76,0.04);
+    }
+
+    /* Top shimmer */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 12%; right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+
+    /* ── TABS ── */
+    .tabs {
+      display: flex;
+      position: relative;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border2);
+      border-radius: 14px;
+      padding: 5px;
+      margin-bottom: 2rem;
+    }
+
+    .tab-slider {
+      position: absolute;
+      top: 5px; bottom: 5px;
+      left: 5px;
+      width: calc(50% - 5px);
+      background: linear-gradient(135deg, var(--gold2), var(--gold), var(--gold3));
+      border-radius: 10px;
+      box-shadow: 0 4px 18px rgba(201,168,76,0.35);
+      transition: transform 0.38s cubic-bezier(.4,0,.2,1);
+    }
+    .tab-slider.to-right { transform: translateX(calc(100% + 0px)); }
+
+    .tab-btn {
+      flex: 1;
+      position: relative; z-index: 1;
+      background: none; border: none;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      padding: 0.72rem 1rem;
+      border-radius: 10px;
+      transition: color 0.3s;
+    }
+    .tab-btn.on  { color: #080608; }
+    .tab-btn.off { color: var(--muted); }
+    .tab-btn.off:hover { color: var(--dim); }
+
+    /* ── PANELS ── */
+    .panel { display: none; flex-direction: column; gap: 1.15rem; }
+    .panel.show {
+      display: flex;
+      animation: slideIn 0.38s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(12px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── FIELD ── */
+    .field { display: flex; flex-direction: column; gap: 0.48rem; }
+    .field label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .field-input {
+      position: relative;
+    }
+
+    .field-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%; transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .inp {
+      width: 100%;
+      padding: 0.88rem 1rem 0.88rem 2.85rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.93rem; font-weight: 400;
+      transition: all 0.22s;
+      outline: none;
+    }
+    .inp::placeholder { color: var(--muted); font-weight: 300; }
+    .inp:focus {
+      border-color: var(--gold);
+      background: rgba(201,168,76,0.06);
+      box-shadow: 0 0 0 3px rgba(201,168,76,0.14);
+    }
+    .inp:focus ~ .field-icon { color: var(--gold); }
+    .field-input:focus-within .field-icon { color: var(--gold); }
+
+    /* Strength bars */
+    .strength { display: flex; gap: 4px; margin-top: 0.4rem; }
+    .sbar {
+      flex: 1; height: 2.5px;
+      border-radius: 2px;
+      background: var(--weak);
+      transition: background 0.35s;
+    }
+    .sbar.weak   { background: #e05c5c; }
+    .sbar.fair   { background: var(--gold); }
+    .sbar.strong { background: var(--teal); }
+
+    /* Error */
+    .err {
+      display: none;
+      align-items: center;
+      gap: 0.6rem;
+      background: rgba(224,92,92,0.08);
+      border: 1px solid rgba(224,92,92,0.22);
+      border-radius: 10px;
+      padding: 0.78rem 1rem;
+      color: #ff9292;
+      font-size: 0.83rem;
+      animation: shake 0.38s ease;
+    }
+    .err.show { display: flex; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      25%{transform:translateX(-5px)}
+      75%{transform:translateX(5px)}
+    }
+
+    /* Info notice */
+    .notice {
+      display: flex;
+      gap: 0.7rem;
+      background: rgba(77,217,200,0.06);
+      border: 1px solid rgba(77,217,200,0.18);
+      border-radius: 11px;
+      padding: 0.88rem 1rem;
+    }
+    .notice-ico { color: var(--teal); font-size: 0.9rem; margin-top: 1px; flex-shrink: 0; }
+    .notice p { font-size: 0.8rem; color: var(--dim); line-height: 1.6; font-weight: 300; }
+    .notice strong { display: block; font-size: 0.73rem; font-weight: 700; color: var(--teal); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 0.15rem; }
+
+    /* Submit button */
+    .submit-btn {
+      width: 100%;
+      margin-top: 0.2rem;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--gold2) 0%, var(--gold) 50%, var(--gold3) 100%);
+      color: #09070d;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.93rem; font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      border: none; border-radius: 12px;
+      cursor: pointer;
+      position: relative; overflow: hidden;
+      transition: all 0.26s cubic-bezier(.4,0,.2,1);
+      box-shadow: 0 4px 22px rgba(201,168,76,0.34), inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .submit-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.14), transparent 60%);
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 38px rgba(201,168,76,0.5), inset 0 1px 0 rgba(255,255,255,0.22); }
+    .submit-btn:hover::after { opacity: 1; }
+    .submit-btn:active { transform: translateY(0); }
+    .submit-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+    /* Footer text */
+    .card-foot {
+      text-align: center;
+      margin-top: 1.6rem;
+      color: var(--muted);
+      font-size: 0.83rem;
+    }
+    .card-foot a { color: var(--gold); text-decoration: none; font-weight: 600; transition: opacity .2s; }
+    .card-foot a:hover { opacity: 0.75; text-decoration: underline; }
+
+    /* Back link */
+    .back {
+      text-align: center;
+      margin-top: 1.4rem;
+      animation: slideDown 0.7s 0.35s ease both;
+    }
+    .back a {
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: color 0.2s;
+    }
+    .back a:hover { color: var(--gold); }
+
+    /* Toast */
+    #toasts {
+      position: fixed; bottom: 2rem; right: 2rem;
+      z-index: 9999; display: flex; flex-direction: column; gap: .75rem;
+    }
+    .toast {
+      padding: .95rem 1.35rem;
+      border-radius: 12px; font-size: .87rem; font-weight: 500;
+      min-width: 200px; max-width: 300px;
+      border-left: 3px solid;
+      box-shadow: 0 16px 56px rgba(0,0,0,.7);
+      animation: tin .35s cubic-bezier(.4,0,.2,1);
+    }
+    .toast.ok  { background: #0c1f10; color: #70d47a; border-color: #285a30; }
+    .toast.bad { background: #1f0c0c; color: #ff8888; border-color: #5a2828; }
+    @keyframes tin { from{transform:translateX(110%);opacity:0} to{transform:translateX(0);opacity:1} }
+
+    @media(max-width:480px) { .card { padding: 2rem 1.6rem; } }
+  </style>
+</head>
+<body>
+
+<!-- BG -->
+<div class="bg">
+  <div class="bg-mosaic">
+    <div></div><div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div><div></div>
+    <div></div><div></div><div></div><div></div><div></div>
+  </div>
+  <div class="bg-vignette"></div>
+  <div class="orb orb-gold"></div>
+  <div class="orb orb-teal"></div>
+</div>
+
+<!-- AUTH CARD -->
+<div class="auth-wrap">
+
+  <div class="brand-header">
+    <a href="index.html" class="brand-link">
+      <div class="brand-gem">📸</div>
+      <span class="brand-name">PixShare</span>
+    </a>
+  </div>
+
+  <div class="card">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab-slider" id="slider"></div>
+      <button class="tab-btn on"  id="t-login"  onclick="go('login')">Sign In</button>
+      <button class="tab-btn off" id="t-signup" onclick="go('signup')">Create Account</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="panel show" id="p-login">
+      <div class="err" id="e-login"><span>⚠</span><span id="e-login-msg"></span></div>
+
+      <div class="field">
+        <label>Username</label>
+        <div class="field-input">
+          <input class="inp" id="l-user" type="text" placeholder="your_username" autocomplete="username"/>
+          <span class="field-icon">👤</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="field-input">
+          <input class="inp" id="l-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+          <span class="field-icon">🔒</span>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="btn-l" onclick="doLogin()">Sign In →</button>
+    </div>
+
+    <!-- SIGNUP -->
+    <div class="panel" id="p-signup">
+      <div class="notice">
+        <span class="notice-ico">ℹ</span>
+        <div>
+          <strong>Consumer accounts only</strong>
+          <p>Creator accounts are managed internally. Sign up to browse, comment &amp; rate photos.</p>
+        </div>
+      </div>
+
+      <div class="err" id="e-signup"><span>⚠</span><span id="e-signup-msg"></span></div>
+
+      <div class="field">
+        <label>Username</label>
+        <div class="field-input">
+          <input class="inp" id="s-user" type="text" placeholder="choose_a_username" autocomplete="username"/>
+          <span class="field-icon">👤</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="field-input">
+          <input class="inp" id="s-pass" type="password" placeholder="min. 6 characters"
+            autocomplete="new-password" oninput="strength(this.value)"/>
+          <span class="field-icon">🔒</span>
+        </div>
+        <div class="strength">
+          <div class="sbar" id="sb1"></div>
+          <div class="sbar" id="sb2"></div>
+          <div class="sbar" id="sb3"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Confirm Password</label>
+        <div class="field-input">
+          <input class="inp" id="s-conf" type="password" placeholder="repeat password" autocomplete="new-password"/>
+          <span class="field-icon">🔑</span>
+        </div>
+      </div>
+
+      <button class="submit-btn" id="btn-s" onclick="doSignup()">Create Account →</button>
+    </div>
+
+  </div><!-- /card -->
+
+  <div class="back"><a href="index.html">← Back to home</a></div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="auth.js"></script>
+<script>
+  // redirect if already logged in
+  if (typeof Auth !== 'undefined' && Auth.loggedIn())
+    window.location.href = Auth.role() === 'creator' ? 'creator.html' : 'gallery.html';
+
+  // default tab from URL
+  if (new URLSearchParams(location.search).get('tab') === 'signup') go('signup');
+
+  function go(tab) {
+    const toSignup = tab === 'signup';
+    document.getElementById('slider').classList.toggle('to-right', toSignup);
+    document.getElementById('t-login').className  = 'tab-btn ' + (toSignup ? 'off' : 'on');
+    document.getElementById('t-signup').className = 'tab-btn ' + (toSignup ? 'on'  : 'off');
+    document.getElementById('p-login').className  = 'panel ' + (toSignup ? ''  : 'show');
+    document.getElementById('p-signup').className = 'panel ' + (toSignup ? 'show' : '');
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter') return;
+    document.getElementById('p-login').classList.contains('show') ? doLogin() : doSignup();
+  });
+
+  function strength(pw) {
+    const b = [document.getElementById('sb1'),document.getElementById('sb2'),document.getElementById('sb3')];
+    b.forEach(x => x.className = 'sbar');
+    if (pw.length >= 1) b[0].classList.add('weak');
+    if (pw.length >= 6) b[1].classList.add('fair');
+    if (pw.length >= 10 && /[A-Z]/.test(pw) && /[\d\W]/.test(pw)) b[2].classList.add('strong');
+    else if (pw.length >= 8) b[2].classList.add('fair');
+  }
+
+  function toast(msg, type) {
+    const t = document.createElement('div');
+    t.className = `toast ${type}`; t.textContent = msg;
+    document.getElementById('toasts').append(t);
+    setTimeout(() => t.remove(), 3500);
+  }
+
+  function showErr(id, msg) {
+    const box = document.getElementById('e-' + id);
+    document.getElementById('e-' + id + '-msg').textContent = msg;
+    box.classList.add('show');
+    void box.offsetWidth; // re-trigger shake
+    box.style.animation = 'none';
+    requestAnimationFrame(() => { box.style.animation = ''; });
+  }
+  function hideErr(id) { document.getElementById('e-' + id).classList.remove('show'); }
+
+  async function doLogin() {
+    const user = document.getElementById('l-user').value.trim();
+    const pass = document.getElementById('l-pass').value;
+    const btn  = document.getElementById('btn-l');
+    hideErr('login');
+    if (!user || !pass) return showErr('login', 'Please enter your username and password.');
+
+    btn.textContent = 'Signing in…'; btn.disabled = true;
+    try {
+      const {ok, data} = await apiFetch('/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({username:user, password:pass})
+      });
+      if (ok) {
+        Auth.save(data.token, data.role, data.username);
+        toast('Welcome back, ' + data.username + '! ✦', 'ok');
+        setTimeout(() => { location.href = data.role === 'creator' ? 'creator.html' : 'gallery.html'; }, 700);
+      } else showErr('login', data.message || 'Invalid credentials.');
+    } catch { showErr('login', 'Network error. Please try again.'); }
+    btn.textContent = 'Sign In →'; btn.disabled = false;
+  }
+
+  async function doSignup() {
+    const user = document.getElementById('s-user').value.trim();
+    const pass = document.getElementById('s-pass').value;
+    const conf = document.getElementById('s-conf').value;
+    const btn  = document.getElementById('btn-s');
+    hideErr('signup');
+    if (!user || !pass)    return showErr('signup', 'Username and password are required.');
+    if (user.length < 3)   return showErr('signup', 'Username must be at least 3 characters.');
+    if (pass.length < 6)   return showErr('signup', 'Password must be at least 6 characters.');
+    if (pass !== conf)     return showErr('signup', 'Passwords do not match.');
+
+    btn.textContent = 'Creating account…'; btn.disabled = true;
+    try {
+      const {ok, data} = await apiFetch('/signup', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({username:user, password:pass})
+      });
+      if (ok) {
+        Auth.save(data.token, data.role, data.username);
+        toast('Account created! Welcome to PixShare ✦', 'ok');
+        setTimeout(() => { location.href = 'gallery.html'; }, 700);
+      } else showErr('signup', data.message || 'Signup failed. Try again.');
+    } catch { showErr('signup', 'Network error. Please try again.'); }
+    btn.textContent = 'Create Account →'; btn.disabled = false;
+  }
+</script>
+</body>
+</html>

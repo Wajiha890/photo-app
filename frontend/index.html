@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PixShare — Where Every Frame Speaks</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+
+    body { overflow-x: hidden; }
+
+    /* ══ NAVBAR ══ */
+    .site-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2.5rem; height: 68px;
+      background: rgba(6,6,14,0.72);
+      backdrop-filter: blur(24px) saturate(1.6);
+      border-bottom: 1px solid rgba(201,168,76,0.12);
+    }
+    .nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+    .nav-gem {
+      width: 38px; height: 38px;
+      background: linear-gradient(140deg, #d4a843, #c9a84c, #b8932a);
+      border-radius: 10px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 20px rgba(201,168,76,0.4), inset 0 1px 0 rgba(255,255,255,0.22);
+    }
+    .nav-logo-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.85rem; font-weight: 700; color: #c9a84c; letter-spacing: 0.04em;
+    }
+    .nav-actions { display: flex; align-items: center; gap: 0.8rem; }
+    .btn-outline-nav {
+      padding: 0.56rem 1.35rem; background: transparent;
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 10px;
+      color: rgba(236,233,248,0.75); font-family: 'Outfit', sans-serif;
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.22s;
+    }
+    .btn-outline-nav:hover { border-color: rgba(201,168,76,0.5); color: #c9a84c; background: rgba(201,168,76,0.06); }
+    .btn-gold-nav {
+      padding: 0.56rem 1.5rem;
+      background: linear-gradient(135deg, #d4a843, #c9a84c, #b8932a);
+      border: none; border-radius: 10px; color: #09070d;
+      font-family: 'Outfit', sans-serif; font-size: 0.85rem; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 4px 18px rgba(201,168,76,0.35); transition: all 0.22s;
+    }
+    .btn-gold-nav:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,168,76,0.55); }
+
+    /* ══ HERO ══ */
+    .hero {
+      min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr;
+      overflow: hidden; padding-top: 68px; position: relative;
+    }
+    .hero-left {
+      display: flex; flex-direction: column; justify-content: center;
+      padding: 5rem 5rem 5rem 6rem; position: relative; z-index: 2;
+      background: linear-gradient(to right, var(--ink) 60%, transparent);
+    }
+    .hero-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.55rem;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase;
+      color: #c9a84c; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.22);
+      padding: 0.44rem 1.1rem; border-radius: 100px; margin-bottom: 2rem; width: fit-content;
+      animation: fadeUp 0.9s ease both;
+    }
+    .eyebrow-dot { width: 5px; height: 5px; border-radius: 50%; background: #c9a84c; animation: blink 2s ease-in-out infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.18} }
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(4rem, 7vw, 7.8rem); font-weight: 700;
+      line-height: 0.88; letter-spacing: -0.02em; color: #ece9f8;
+      margin-bottom: 0.15em; animation: fadeUp 0.9s 0.1s ease both;
+    }
+    .hero-title .accent { color: #c9a84c; font-style: italic; }
+    .hero-desc {
+      font-size: 1.05rem; font-weight: 300; color: #a6a2be; line-height: 1.78;
+      max-width: 460px; margin: 1.6rem 0 3rem; animation: fadeUp 0.9s 0.2s ease both;
+    }
+    .hero-cta { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; animation: fadeUp 0.9s 0.3s ease both; }
+    .btn-hero-primary {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2.4rem;
+      background: linear-gradient(135deg, #d4a843, #c9a84c, #b8932a); color: #09070d;
+      font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700; letter-spacing: 0.04em;
+      border: none; border-radius: 100px; cursor: pointer; text-decoration: none;
+      box-shadow: 0 6px 28px rgba(201,168,76,0.42), inset 0 1px 0 rgba(255,255,255,0.2); transition: all 0.26s;
+    }
+    .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 14px 42px rgba(201,168,76,0.58); }
+    .btn-hero-ghost {
+      display: inline-flex; align-items: center; gap: 0.5rem; padding: 1rem 2.2rem;
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(236,233,248,0.75); font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem; font-weight: 600; border-radius: 100px;
+      cursor: pointer; text-decoration: none; backdrop-filter: blur(8px); transition: all 0.22s;
+    }
+    .btn-hero-ghost:hover { border-color: rgba(201,168,76,0.4); color: #c9a84c; background: rgba(201,168,76,0.05); }
+    .hero-stats {
+      display: flex; gap: 2.5rem; margin-top: 3.5rem; padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.06); animation: fadeUp 0.9s 0.4s ease both;
+    }
+    .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 700; color: #c9a84c; line-height: 1; }
+    .stat-lbl { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #58567a; margin-top: 0.3rem; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Photo Wall */
+    .hero-right { position: relative; overflow: hidden; }
+    .photo-wall {
+      position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; padding: 8px;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 12%, black 88%, transparent 100%);
+    }
+    .photo-col { display: flex; flex-direction: column; gap: 8px; }
+    .photo-col-1 { animation: scrollUp 42s linear infinite; }
+    .photo-col-2 { animation: scrollDown 36s linear infinite; margin-top: -100px; }
+    @keyframes scrollUp   { from { transform: translateY(0); }    to { transform: translateY(-50%); } }
+    @keyframes scrollDown { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+    .wall-photo { border-radius: 12px; overflow: hidden; flex-shrink: 0; }
+    .wall-photo img { width: 100%; display: block; object-fit: cover; transition: transform 0.5s ease; }
+    .wall-photo:hover img { transform: scale(1.05); }
+    .hero-right::before {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to left, transparent 25%, rgba(6,6,14,0.92) 100%),
+                  linear-gradient(to bottom, rgba(6,6,14,0.55) 0%, transparent 18%, transparent 82%, rgba(6,6,14,0.55) 100%);
+      z-index: 1; pointer-events: none;
+    }
+
+    /* ══ FEATURES ══ */
+    .features-section { padding: 7rem 2rem; max-width: 1200px; margin: 0 auto; }
+    .section-header { text-align: center; margin-bottom: 4rem; }
+    .section-eyebrow { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #58567a; margin-bottom: 1rem; }
+    .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.2rem); font-weight: 600; line-height: 1.15; }
+    .section-title em { color: #c9a84c; font-style: italic; }
+    .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5px; border: 1.5px solid rgba(255,255,255,0.06); border-radius: 22px; overflow: hidden; }
+    .feat-card { background: rgba(10,10,22,0.85); padding: 2.8rem 2.4rem; position: relative; transition: background 0.35s; border-right: 1.5px solid rgba(255,255,255,0.05); }
+    .feat-card:last-child { border-right: none; }
+    .feat-card:hover { background: rgba(18,18,34,0.98); }
+    .feat-card::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, transparent, #c9a84c, transparent); opacity: 0; transition: opacity 0.35s; }
+    .feat-card:hover::after { opacity: 1; }
+    .feat-ico { font-size: 2.5rem; display: block; margin-bottom: 1.4rem; }
+    .feat-title { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; font-weight: 600; margin-bottom: 0.75rem; }
+    .feat-desc { font-size: 0.88rem; color: #58567a; line-height: 1.8; font-weight: 300; }
+
+    /* ══ SHOWCASE ══ */
+    .showcase-section { padding: 0 2rem 7rem; max-width: 1300px; margin: 0 auto; }
+    .showcase-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; grid-template-rows: auto auto; gap: 10px; border-radius: 22px; overflow: hidden; }
+    .showcase-cell { overflow: hidden; position: relative; cursor: pointer; }
+    .showcase-cell img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.6s cubic-bezier(.4,0,.2,1), filter 0.4s; filter: brightness(0.72) saturate(0.8); }
+    .showcase-cell:hover img { transform: scale(1.07); filter: brightness(0.9) saturate(1.1); }
+    .sc-1 { grid-row: 1/3; min-height: 520px; }
+    .sc-2, .sc-3 { min-height: 250px; }
+    .sc-4, .sc-5 { min-height: 260px; }
+    .showcase-cell-overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(6,6,14,0.85) 0%, transparent 55%); display: flex; flex-direction: column; justify-content: flex-end; padding: 1.5rem; opacity: 0; transition: opacity 0.35s; }
+    .showcase-cell:hover .showcase-cell-overlay { opacity: 1; }
+    .sc-label { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 600; color: white; }
+    .sc-sub { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-top: 0.2rem; }
+
+    /* ══════════════════════════════════
+       DEVELOPER / CREATOR CARD
+    ══════════════════════════════════ */
+    .dev-section {
+      max-width: 900px; margin: 2rem auto 5rem; padding: 0 2rem;
+    }
+
+    .dev-section-label {
+      text-align: center;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.22em;
+      text-transform: uppercase; color: #58567a;
+      margin-bottom: 2rem;
+    }
+
+    .dev-card {
+      position: relative; overflow: hidden;
+      background: linear-gradient(135deg, rgba(15,15,28,0.95), rgba(20,18,36,0.9));
+      border: 1px solid rgba(201,168,76,0.18);
+      border-radius: 28px;
+      padding: 3rem 3.5rem;
+      display: flex; align-items: center; gap: 3rem;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .dev-card:hover {
+      border-color: rgba(201,168,76,0.32);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 80px rgba(201,168,76,0.06);
+    }
+
+    /* Shimmer top line */
+    .dev-card::before {
+      content: '';
+      position: absolute; top: 0; left: 12%; right: 12%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(201,168,76,0.75), transparent);
+    }
+
+    /* Ambient glow */
+    .dev-card-glow {
+      position: absolute; inset: 0; pointer-events: none;
+      background: radial-gradient(ellipse 55% 70% at 18% 50%, rgba(201,168,76,0.07), transparent 65%);
+    }
+
+    .dev-card > * { position: relative; z-index: 1; }
+
+    /* ── Photo ── */
+    .dev-photo-wrap { flex-shrink: 0; position: relative; }
+
+    .dev-photo-outer {
+      width: 108px; height: 108px; border-radius: 50%;
+      background: conic-gradient(from 0deg, #d4a843, #c9a84c, #f0d882, #b8932a, #d4a843);
+      padding: 2.5px;
+      animation: spinRing 10s linear infinite;
+      box-shadow: 0 0 28px rgba(201,168,76,0.3);
+    }
+    @keyframes spinRing { to { transform: rotate(360deg); } }
+
+    .dev-photo-inner {
+      width: 100%; height: 100%; border-radius: 50%;
+      overflow: hidden; background: #12111e;
+      border: 2px solid #12111e;
+    }
+    .dev-photo-inner img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top; display: block;
+    }
+
+    .dev-online {
+      position: absolute; bottom: 5px; right: 5px;
+      width: 15px; height: 15px; border-radius: 50%;
+      background: #4dd9c8;
+      border: 2.5px solid #12111e;
+      box-shadow: 0 0 10px rgba(77,217,200,0.7);
+      animation: pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 6px rgba(77,217,200,0.5)} 50%{box-shadow:0 0 18px rgba(77,217,200,1)} }
+
+    /* ── Divider ── */
+    .dev-vline {
+      width: 1px; height: 90px; flex-shrink: 0;
+      background: linear-gradient(to bottom, transparent, rgba(201,168,76,0.35), transparent);
+    }
+
+    /* ── Info ── */
+    .dev-info {}
+
+    .dev-eyebrow {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
+      color: #c9a84c; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.22);
+      padding: 0.3rem 0.85rem; border-radius: 100px; margin-bottom: 0.85rem;
+    }
+
+    .dev-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem; font-weight: 700; color: #ece9f8;
+      line-height: 1; letter-spacing: -0.01em; margin-bottom: 0.45rem;
+    }
+
+    .dev-title {
+      font-size: 0.87rem; color: #a6a2be; font-weight: 300;
+      line-height: 1.6; margin-bottom: 1.25rem;
+    }
+    .dev-title strong { color: #c9a84c; font-weight: 600; }
+
+    .dev-tech {
+      display: flex; gap: 0.5rem; flex-wrap: wrap;
+    }
+    .tech-chip {
+      font-size: 0.73rem; font-weight: 600; letter-spacing: 0.05em;
+      padding: 0.3rem 0.88rem; border-radius: 100px;
+      transition: transform 0.18s, box-shadow 0.18s;
+      cursor: default;
+    }
+    .tech-chip:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.3); }
+    .tc-py  { background: rgba(77,217,200,0.1); color: #4dd9c8; border: 1px solid rgba(77,217,200,0.25); }
+    .tc-js  { background: rgba(245,200,66,0.1); color: #f5c842; border: 1px solid rgba(245,200,66,0.25); }
+    .tc-fl  { background: rgba(107,143,255,0.1); color: #6b8fff; border: 1px solid rgba(107,143,255,0.25); }
+    .tc-db  { background: rgba(201,168,76,0.1); color: #c9a84c; border: 1px solid rgba(201,168,76,0.25); }
+    .tc-cs  { background: rgba(255,107,107,0.1); color: #ff9090; border: 1px solid rgba(255,107,107,0.25); }
+
+    /* ══ CTA ══ */
+    .cta-section { margin: 0 auto 7rem; max-width: 900px; padding: 0 2rem; }
+    .cta-card { position: relative; overflow: hidden; background: var(--panel); border: 1px solid rgba(201,168,76,0.15); border-radius: 28px; padding: 5rem 4rem; text-align: center; }
+    .cta-card::before { content: ''; position: absolute; top: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, #c9a84c, transparent); }
+    .cta-orb { position: absolute; width: 600px; height: 600px; border-radius: 50%; background: radial-gradient(circle, rgba(201,168,76,0.1) 0%, transparent 65%); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; filter: blur(40px); animation: orbPulse 7s ease-in-out infinite alternate; }
+    @keyframes orbPulse { from { transform: translate(-50%,-50%) scale(0.85); opacity: 0.7; } to { transform: translate(-50%,-50%) scale(1.1); opacity: 1; } }
+    .cta-card > * { position: relative; z-index: 1; }
+    .cta-tag { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: #c9a84c; margin-bottom: 1.5rem; }
+    .cta-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 700; line-height: 1.05; margin-bottom: 1rem; }
+    .cta-sub { color: #a6a2be; font-size: 1rem; font-weight: 300; max-width: 480px; margin: 0 auto 2.8rem; line-height: 1.7; }
+    .cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* ══ FOOTER ══ */
+    .site-footer { border-top: 1px solid rgba(255,255,255,0.05); padding: 2.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+    .footer-brand { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; font-weight: 700; color: #c9a84c; }
+    .footer-links { display: flex; gap: 2rem; align-items: center; }
+    .footer-links a { color: #58567a; font-size: 0.83rem; text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: #c9a84c; }
+    .footer-copy { color: #58567a; font-size: 0.8rem; }
+
+    /* ══ RESPONSIVE ══ */
+    @media(max-width:1000px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-left { padding: 5rem 2rem 3rem; background: var(--ink); }
+      .hero-right { height: 60vw; max-height: 420px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .feat-card { border-right: none; border-bottom: 1.5px solid rgba(255,255,255,0.05); }
+      .feat-card:last-child { border-bottom: none; }
+      .showcase-grid { grid-template-columns: 1fr 1fr; }
+      .sc-1 { grid-column: 1/3; grid-row: auto; min-height: 280px; }
+      .cta-card { padding: 3.5rem 2rem; }
+      .dev-card { flex-direction: column; gap: 1.5rem; padding: 2.5rem 2rem; text-align: center; }
+      .dev-vline { display: none; }
+      .dev-tech { justify-content: center; }
+    }
+    @media(max-width:600px) {
+      .site-nav { padding: 0 1.25rem; }
+      .hero-left { padding: 4rem 1.5rem 2.5rem; }
+      .hero-title { font-size: 3.5rem; }
+      .hero-stats { gap: 1.5rem; }
+      .showcase-grid { grid-template-columns: 1fr; }
+      .sc-1 { grid-column: auto; min-height: 280px; }
+      .site-footer { flex-direction: column; text-align: center; }
+      .footer-links { justify-content: center; }
+      .dev-name { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="site-nav">
+  <a href="index.html" class="nav-brand">
+    <div class="nav-gem">📸</div>
+    <span class="nav-logo-text">PixShare</span>
+  </a>
+  <div class="nav-actions">
+    <a href="login.html" class="btn-outline-nav">Sign In</a>
+    <a href="login.html?tab=signup" class="btn-gold-nav">Get Started →</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow"><span class="eyebrow-dot"></span>Where every frame speaks</div>
+    <h1 class="hero-title">The home<br>for <span class="accent">visual</span><br>storytellers</h1>
+    <p class="hero-desc">A curated sanctuary for creators and curious explorers. Share extraordinary photography, discover hidden gems, and connect through images that move you.</p>
+    <div class="hero-cta">
+      <a href="login.html?tab=signup" class="btn-hero-primary">Start Exploring →</a>
+      <a href="login.html" class="btn-hero-ghost">Sign In</a>
+    </div>
+    <div class="hero-stats">
+      <div><div class="stat-num">12K+</div><div class="stat-lbl">Photos Shared</div></div>
+      <div><div class="stat-num">4.8K</div><div class="stat-lbl">Explorers</div></div>
+      <div><div class="stat-num">98K</div><div class="stat-lbl">Ratings Given</div></div>
+    </div>
+  </div>
+
+  <div class="hero-right">
+    <div class="photo-wall">
+      <div class="photo-col photo-col-1">
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=640&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=500&h=380&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&h=520&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=400&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=500&h=600&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&h=440&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&h=640&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=500&h=380&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=500&h=520&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=500&h=400&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=500&h=600&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=500&h=440&fit=crop" loading="lazy" alt=""/></div>
+      </div>
+      <div class="photo-col photo-col-2">
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=500&h=580&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=500&h=400&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&h=550&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=500&h=380&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1487621167305-5d1b91ef3a08?w=500&h=500&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=500&h=450&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=500&h=580&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1518020382113-a7e8fc38eac9?w=500&h=400&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&h=550&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=500&h=380&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1487621167305-5d1b91ef3a08?w=500&h=500&fit=crop" loading="lazy" alt=""/></div>
+        <div class="wall-photo"><img src="https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=500&h=450&fit=crop" loading="lazy" alt=""/></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FEATURES ══ -->
+<section class="features-section">
+  <div class="section-header">
+    <p class="section-eyebrow">Everything you need</p>
+    <h2 class="section-title">Built for visual <em>storytelling</em></h2>
+  </div>
+  <div class="features-grid">
+    <div class="feat-card"><span class="feat-ico">🖼️</span><h3 class="feat-title">Curated Gallery</h3><p class="feat-desc">Browse an ever-growing collection of stunning photography from talented creators worldwide. Every image hand-shared with care.</p></div>
+    <div class="feat-card"><span class="feat-ico">⭐</span><h3 class="feat-title">Rate & Appreciate</h3><p class="feat-desc">Give meaningful feedback through a refined 5-star system. Help extraordinary work rise to the surface and reach wider audiences.</p></div>
+    <div class="feat-card"><span class="feat-ico">💬</span><h3 class="feat-title">Engage & Connect</h3><p class="feat-desc">Leave thoughtful comments and spark conversations that celebrate the art and craft behind every extraordinary photograph.</p></div>
+  </div>
+</section>
+
+<!-- ══ SHOWCASE ══ -->
+<section class="showcase-section">
+  <div class="showcase-grid">
+    <div class="showcase-cell sc-1"><img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=900&h=1100&fit=crop" alt="Mountain" loading="lazy"/><div class="showcase-cell-overlay"><div class="sc-label">Alpine Serenity</div><div class="sc-sub">by @naturelens</div></div></div>
+    <div class="showcase-cell sc-2"><img src="https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=600&h=350&fit=crop" alt="Sunset" loading="lazy"/><div class="showcase-cell-overlay"><div class="sc-label">Golden Hour</div><div class="sc-sub">by @lighthunter</div></div></div>
+    <div class="showcase-cell sc-3"><img src="https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&h=350&fit=crop" alt="Forest" loading="lazy"/><div class="showcase-cell-overlay"><div class="sc-label">Into the Wild</div><div class="sc-sub">by @forestwalker</div></div></div>
+    <div class="showcase-cell sc-4"><img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=600&h=360&fit=crop" alt="Stars" loading="lazy"/><div class="showcase-cell-overlay"><div class="sc-label">Starfield</div><div class="sc-sub">by @milkywayshots</div></div></div>
+    <div class="showcase-cell sc-5"><img src="https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=600&h=360&fit=crop" alt="Waterfall" loading="lazy"/><div class="showcase-cell-overlay"><div class="sc-label">Cascade Falls</div><div class="sc-sub">by @waterchaser</div></div></div>
+  </div>
+</section>
+
+<!-- ══ DEVELOPER CARD ══ -->
+<section class="dev-section">
+  <p class="dev-section-label">The maker</p>
+  <div class="dev-card">
+    <div class="dev-card-glow"></div>
+
+    <!-- Photo with spinning gold ring -->
+    <div class="dev-photo-wrap">
+      <div class="dev-photo-outer">
+        <div class="dev-photo-inner">
+          <img
+            src="Mjb.jpg"
+            alt="Mujeeb"
+            onerror="this.style.display='none'; this.parentElement.style.background='linear-gradient(135deg,#c9a84c,#b8932a)'; this.parentElement.innerHTML='<span style=font-family:Cormorant,serif;font-size:2.2rem;font-weight:700;color:#09070d;display:flex;align-items:center;justify-content:center;height:100%;>M</span>'"
+          />
+        </div>
+      </div>
+      <div class="dev-online"></div>
+    </div>
+
+    <div class="dev-vline"></div>
+
+    <!-- Info -->
+    <div class="dev-info">
+      <div class="dev-eyebrow">✦ Created &amp; Developed by</div>
+      <div class="dev-name">Mujeeb</div>
+      <div class="dev-title">
+        Full-Stack Developer &amp; UI Designer<br>
+        <strong>PixShare</strong> — Built with passion using Flask, SQLite &amp; vanilla JS
+      </div>
+      <div class="dev-tech">
+        <span class="tech-chip tc-py">🐍 Python</span>
+        <span class="tech-chip tc-js">⚡ JavaScript</span>
+        <span class="tech-chip tc-fl">🔥 Flask</span>
+        <span class="tech-chip tc-db">🗄️ SQLite</span>
+        <span class="tech-chip tc-cs">🎨 CSS</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<section style="text-align:center; padding:40px 20px;">
+  
+  <h2 style="font-size:24px; margin-bottom:10px;">
+    Ready to explore the world?
+  </h2>
+
+  <p style="font-size:14px; margin-bottom:20px;">
+    Join thousands discovering amazing photography.
+  </p>
+
+  <div>
+    <a href="login.html?tab=signup" class="btn-hero-primary">Create Account</a>
+    <a href="login.html" class="btn-hero-ghost">Sign In</a>
+  </div>
+
+</section>
+
+
+<!-- ══ FOOTER ══ -->
+<footer class="site-footer">
+  <span class="footer-brand">PixShare ✦</span>
+  <div class="footer-links">
+    <a href="login.html">Sign In</a>
+    <a href="login.html?tab=signup">Join</a>
+    <a href="gallery.html">Gallery</a>
+  </div>
+  <span class="footer-copy">© 2026 PixShare — Developed by <span style="color:#c9a84c;font-weight:600;">Mujeeb</span></span>
+</footer>
+
+<script src="auth.js"></script>
+<script>
+  if (typeof Auth !== 'undefined' && Auth.loggedIn())
+    location.href = Auth.role() === 'creator' ? 'creator.html' : 'gallery.html';
+</script>
+</body>
+</html>
