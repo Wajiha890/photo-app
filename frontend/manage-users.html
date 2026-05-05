@@ -163,14 +163,14 @@
 <body>
 
 <nav class="navbar">
-  <a href="creator.html" class="brand">
+  <a href="Creator.html" class="brand">
     <div class="brand-gem">📸</div>
     PixShare
   </a>
   <div class="nav-right">
     <span class="nav-username" id="nav-username"></span>
     <span class="role-badge creator">Creator</span>
-    <a href="creator.html" class="btn btn-ghost btn-sm">← Dashboard</a>
+    <a href="Creator.html" class="btn btn-ghost btn-sm">← Dashboard</a>
     <button class="btn btn-ghost btn-sm" onclick="Auth.logout()">Sign Out</button>
   </div>
 </nav>
@@ -195,10 +195,11 @@
 
 <div id="toast-container"></div>
 
-<script src="auth.js"></script>
+<script src="config.js"></script>
+<script src="Auth.js"></script>
 <script>
-  if (!Auth.loggedIn()) location.href = 'login.html';
-  if (Auth.role() !== 'creator') location.href = 'gallery.html';
+  if (!Auth.loggedIn()) location.href = 'Login.html';
+  if (Auth.role() !== 'creator') location.href = 'Gallery.html';
   document.getElementById('nav-username').textContent = Auth.username();
 
   async function loadUsers() {

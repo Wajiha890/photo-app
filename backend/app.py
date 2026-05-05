@@ -1,17 +1,25 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from config import Config
-from models import db, Image, Comment, Rating, User
+from models import db, Image, Comment, Rating, User, Reaction
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
 import jwt
 import datetime
+import os
 from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
 
 db.init_app(app)
-CORS(app, resources={r"/*": {"origins": "*"}})
+
+_cors_raw = str(app.config.get("CORS_ORIGINS_RAW", "*")).strip()
+if _cors_raw == "*":
+    CORS(app, resources={r"/*": {"origins": "*"}})
+else:
+    _origins = [o.strip() for o in _cors_raw.split(",") if o.strip()]
+    CORS(app, resources={r"/*": {"origins": _origins if _origins else "*"}})
 
 
 # JWT Helpers
@@ -63,6 +71,15 @@ def creator_required(f):
     return decorated
 
 
+def get_optional_user_id():
+    auth_header = request.headers.get("Authorization", "")
+    token = auth_header.replace("Bearer ", "").strip()
+    if not token:
+        return None
+    data = decode_token(token)
+    return data.get("user_id") if data else None
+
+
 # HEALTH
 @app.route("/")
 def home():
@@ -108,26 +125,44 @@ def me():
 
 
 # IMAGE ROUTES (same)
-def image_to_dict(img):
+def image_to_dict(img, user_id=None):
     ratings = [r.value for r in img.ratings]
     avg_rating = round(sum(ratings) / len(ratings), 1) if ratings else 0
+    my_rating = None
+    if user_id:
+        my_rating_row = Rating.query.filter_by(image_id=img.id, user_id=user_id).first()
+        if my_rating_row:
+            my_rating = my_rating_row.value
+    reaction_counts = {"like": 0, "happy": 0, "love": 0}
+    my_reaction = None
+    for reaction in img.reactions:
+        if reaction.reaction_type in reaction_counts:
+            reaction_counts[reaction.reaction_type] += 1
+        if user_id and reaction.user_id == user_id:
+            my_reaction = reaction.reaction_type
+
     return {
         "id": img.id, "title": img.title, "caption": img.caption,
         "location": img.location, "people": img.people, "image_url": img.image_url,
         "created_at": img.created_at.isoformat() if img.created_at else None,
         "uploader": img.uploader.username if img.uploader else "Unknown",
-        "avg_rating": avg_rating, "rating_count": len(ratings), "comment_count": len(img.comments)
+        "avg_rating": avg_rating, "rating_count": len(ratings), "comment_count": len(img.comments),
+        "reaction_counts": reaction_counts,
+        "my_reaction": my_reaction,
+        "my_rating": my_rating,
     }
 
 @app.route("/images", methods=["GET"])
 def get_images():
+    user_id = get_optional_user_id()
     images = Image.query.order_by(Image.created_at.desc()).all()
-    return jsonify([image_to_dict(img) for img in images])
+    return jsonify([image_to_dict(img, user_id) for img in images])
 
 @app.route("/images/<int:image_id>", methods=["GET"])
 def get_image(image_id):
+    user_id = get_optional_user_id()
     img = Image.query.get_or_404(image_id)
-    return jsonify(image_to_dict(img))
+    return jsonify(image_to_dict(img, user_id))
 
 @app.route("/images", methods=["POST"])
 @creator_required
@@ -152,13 +187,14 @@ def delete_image(image_id):
 
 @app.route("/images/search", methods=["GET"])
 def search_images():
+    user_id = get_optional_user_id()
     q = request.args.get("q", "").strip()
     if not q: return jsonify([])
     images = Image.query.filter(
         Image.title.ilike(f"%{q}%") | Image.caption.ilike(f"%{q}%") |
         Image.location.ilike(f"%{q}%") | Image.people.ilike(f"%{q}%")
     ).order_by(Image.created_at.desc()).all()
-    return jsonify([image_to_dict(img) for img in images])
+    return jsonify([image_to_dict(img, user_id) for img in images])
 
 
 # CREATOR STATS ENDPOINT (same)
@@ -171,6 +207,11 @@ def get_image_stats(image_id):
 
     comments = Comment.query.filter_by(image_id=image_id).order_by(Comment.created_at.desc()).all()
     ratings = Rating.query.filter_by(image_id=image_id).all()
+    reactions = Reaction.query.filter_by(image_id=image_id).order_by(Reaction.created_at.desc()).all()
+    reaction_counts = {"like": 0, "happy": 0, "love": 0}
+    for reaction in reactions:
+        if reaction.reaction_type in reaction_counts:
+            reaction_counts[reaction.reaction_type] += 1
 
     return jsonify({
         "image_id": image_id,
@@ -179,6 +220,14 @@ def get_image_stats(image_id):
         "avg_rating": round(sum(r.value for r in ratings)/len(ratings), 1) if ratings else 0,
         "rating_count": len(ratings),
         "ratings": [{"username": r.rater.username if r.rater else "Deleted", "value": r.value} for r in ratings],
+        "reactions": [
+            {
+                "username": reaction.reactor.username if reaction.reactor else "Deleted",
+                "reaction_type": reaction.reaction_type,
+                "created_at": reaction.created_at.isoformat() if reaction.created_at else None,
+            } for reaction in reactions
+        ],
+        "reaction_counts": reaction_counts,
         "comments": [{"username": c.author.username if c.author else "Anonymous", "text": c.text, "created_at": c.created_at.isoformat() if c.created_at else None} for c in comments]
     })
 
@@ -213,6 +262,50 @@ def add_rating():
     return jsonify({"message": "Rating saved"}), 200
 
 
+@app.route("/ratings/<int:image_id>", methods=["GET"])
+def get_rating_summary(image_id):
+    Image.query.get_or_404(image_id)
+    ratings = Rating.query.filter_by(image_id=image_id).all()
+    avg = round(sum(r.value for r in ratings) / len(ratings), 1) if ratings else 0
+    return jsonify({"avg": avg, "count": len(ratings)})
+
+
+@app.route("/reactions", methods=["POST"])
+@token_required
+def add_reaction():
+    data = request.json or {}
+    image_id = data.get("image_id")
+    reaction_type = str(data.get("reaction_type", "")).strip().lower()
+    allowed = {"like", "happy", "love"}
+
+    if not image_id or reaction_type not in allowed:
+        return jsonify({"message": "image_id and valid reaction_type are required"}), 400
+
+    Image.query.get_or_404(image_id)
+    existing = Reaction.query.filter_by(image_id=image_id, user_id=request.user_id).first()
+    if existing:
+        existing.reaction_type = reaction_type
+    else:
+        db.session.add(Reaction(image_id=image_id, user_id=request.user_id, reaction_type=reaction_type))
+    db.session.commit()
+    return jsonify({"message": "Reaction saved"}), 200
+
+
+@app.route("/reactions/<int:image_id>", methods=["GET"])
+def get_reactions(image_id):
+    Image.query.get_or_404(image_id)
+    counts = {"like": 0, "happy": 0, "love": 0}
+    my_reaction = None
+    user_id = get_optional_user_id()
+    reactions = Reaction.query.filter_by(image_id=image_id).all()
+    for reaction in reactions:
+        if reaction.reaction_type in counts:
+            counts[reaction.reaction_type] += 1
+        if user_id and reaction.user_id == user_id:
+            my_reaction = reaction.reaction_type
+    return jsonify({"counts": counts, "my_reaction": my_reaction})
+
+
 # USER MANAGEMENT — ONLY CREATOR
 @app.route("/users", methods=["GET"])
 @creator_required
@@ -240,20 +333,24 @@ def seed_creator():
     # same as before
     pass   # (tumhara purana code yahan paste kar sakte ho)
 
-if __name__ == "__main__":
+def init_db():
+    """Create tables and seed default creator (safe under multi-worker startup)."""
     with app.app_context():
         db.create_all()
-        if not User.query.filter_by(role="creator").first():
+        if User.query.filter_by(role="creator").first():
+            return
+        try:
             hashed = generate_password_hash("Mujeeb123")
             db.session.add(User(username="Admin Mujeeb", password=hashed, role="creator"))
             db.session.commit()
-            print("✅ Default creator seeded")
-    app.run(host="0.0.0.0", debug=True, port=5000)
+        except IntegrityError:
+            db.session.rollback()
 
 
+init_db()
 
 
-
-
-
-    
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", "5000"))
+    debug = os.environ.get("FLASK_DEBUG", "0").lower() in ("1", "true", "yes")
+    app.run(host="0.0.0.0", port=port, debug=debug)

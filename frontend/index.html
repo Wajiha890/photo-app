@@ -335,8 +335,8 @@
     <span class="nav-logo-text">PixShare</span>
   </a>
   <div class="nav-actions">
-    <a href="login.html" class="btn-outline-nav">Sign In</a>
-    <a href="login.html?tab=signup" class="btn-gold-nav">Get Started →</a>
+    <a href="Login.html?tab=login&lock=1" class="btn-outline-nav">Sign In</a>
+    <a href="Login.html?tab=signup&lock=1" class="btn-gold-nav">Create Account</a>
   </div>
 </nav>
 
@@ -347,8 +347,8 @@
     <h1 class="hero-title">The home<br>for <span class="accent">visual</span><br>storytellers</h1>
     <p class="hero-desc">A curated sanctuary for creators and curious explorers. Share extraordinary photography, discover hidden gems, and connect through images that move you.</p>
     <div class="hero-cta">
-      <a href="login.html?tab=signup" class="btn-hero-primary">Start Exploring →</a>
-      <a href="login.html" class="btn-hero-ghost">Sign In</a>
+      <a href="Login.html?tab=login&lock=1" class="btn-hero-ghost">Sign In</a>
+      <a href="Login.html?tab=signup&lock=1" class="btn-hero-primary">Create Account</a>
     </div>
     <div class="hero-stats">
       <div><div class="stat-num">12K+</div><div class="stat-lbl">Photos Shared</div></div>
@@ -457,40 +457,22 @@
   </div>
 </section>
 
-<!-- ══ CTA ══ -->
-<section style="text-align:center; padding:40px 20px;">
-  
-  <h2 style="font-size:24px; margin-bottom:10px;">
-    Ready to explore the world?
-  </h2>
-
-  <p style="font-size:14px; margin-bottom:20px;">
-    Join thousands discovering amazing photography.
-  </p>
-
-  <div>
-    <a href="login.html?tab=signup" class="btn-hero-primary">Create Account</a>
-    <a href="login.html" class="btn-hero-ghost">Sign In</a>
-  </div>
-
-</section>
-
-
 <!-- ══ FOOTER ══ -->
 <footer class="site-footer">
   <span class="footer-brand">PixShare ✦</span>
   <div class="footer-links">
-    <a href="login.html">Sign In</a>
-    <a href="login.html?tab=signup">Join</a>
-    <a href="gallery.html">Gallery</a>
+    <a href="Login.html?tab=login&lock=1">Sign In</a>
+    <a href="Login.html?tab=signup&lock=1">Join</a>
+    <a href="Gallery.html">Gallery</a>
   </div>
   <span class="footer-copy">© 2026 PixShare — Developed by <span style="color:#c9a84c;font-weight:600;">Mujeeb</span></span>
 </footer>
 
-<script src="auth.js"></script>
+<script src="config.js"></script>
+<script src="Auth.js"></script>
 <script>
   if (typeof Auth !== 'undefined' && Auth.loggedIn())
-    location.href = Auth.role() === 'creator' ? 'creator.html' : 'gallery.html';
+    location.href = Auth.role() === 'creator' ? 'Creator.html' : 'Gallery.html';
 </script>
 </body>
 </html>

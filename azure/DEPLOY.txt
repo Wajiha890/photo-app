@@ -1,0 +1,57 @@
+PixShare — Azure deployment (overview)
+========================================
+
+Architecture
+------------
+- Backend: Flask API in folder /backend — deploy as Azure App Service (Linux) using the provided Dockerfile (Gunicorn).
+- Frontend: static HTML/CSS/JS in /frontend — deploy with Azure Static Web Apps, or Blob Storage static website + CDN.
+- Database: Azure Database for PostgreSQL Flexible Server (recommended), not SQLite.
+
+1) PostgreSQL on Azure
+-----------------------
+- Create "Azure Database for PostgreSQL flexible server".
+- Create database (e.g. pixshare) and a user with password.
+- In Networking: allow Azure services; for App Service use private access or firewall rule for App Service outbound IPs.
+- Connection string form:
+  postgresql://USER:PASSWORD@HOST.postgres.database.azure.com:5432/pixshare?sslmode=require
+- App Service application setting: DATABASE_URL = (that URL). The app adds ssl if host contains database.azure.com when POSTGRES_SSLMODE is unset.
+
+2) Backend — App Service (container)
+------------------------------------
+- Create Container Registry (ACR), build and push image from /backend:
+  docker build -t YOUR_ACR.azurecr.io/pixshare-backend:latest ./backend
+  docker push YOUR_ACR.azurecr.io/pixshare-backend:latest
+- Create App Service (Linux, container), pull from ACR.
+- Application settings (minimum):
+  - DATABASE_URL
+  - SECRET_KEY (long random string)
+  - CORS_ORIGINS = https://YOUR-FRONTEND-DOMAIN (comma-separated if multiple; use * only for testing)
+  - Optional: POSTGRES_SSLMODE=require (default is require for Azure Postgres hostnames)
+- Port: the Dockerfile uses Gunicorn on PORT (Azure usually sets PORT=8080 for Linux containers). If the app does not start, add Application Setting PORT=8080 to match the container listen port.
+
+3) Frontend — Static Web Apps (recommended)
+---------------------------------------------
+- In repo root or /frontend, connect GitHub to Azure Static Web Apps, app location: frontend, output: (leave default if serving from root of frontend).
+- Before build/deploy, edit frontend/config.js:
+  window.__PX_API_BASE__ = "https://YOUR-BACKEND-NAME.azurewebsites.net";
+- Ensure staticwebapp.config.json is included (already in /frontend).
+
+4) CORS
+-------
+- Set CORS_ORIGINS on the backend to your Static Web App URL(s), e.g.
+  https://YOUR-APP.azurestaticapps.net
+- After custom domain, add https://yourdomain.com
+
+5) First run / database tables
+------------------------------
+- On startup the API runs db.create_all() and seeds a default creator if none exists (see backend app init_db).
+- Change default creator password after first login in production.
+
+6) Local Docker (unchanged behavior)
+------------------------------------
+- docker-compose.yml overrides backend command to "python app.py" for local dev on port 5000 inside the container (mapped to 5001 on host).
+- Production image uses Gunicorn without that override.
+
+7) GitHub Actions (optional)
+----------------------------
+- See .github/workflows/azure-backend-docker.yml — fill secrets and ACR/App Service names to automate build and deploy.

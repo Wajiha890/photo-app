@@ -512,16 +512,26 @@
 
 <div id="toasts"></div>
 
-<script src="auth.js"></script>
+<script src="config.js"></script>
+<script src="Auth.js"></script>
 <script>
   // redirect if already logged in
   if (typeof Auth !== 'undefined' && Auth.loggedIn())
-    window.location.href = Auth.role() === 'creator' ? 'creator.html' : 'gallery.html';
+    window.location.href = Auth.role() === 'creator' ? 'Creator.html' : 'Gallery.html';
 
-  // default tab from URL
-  if (new URLSearchParams(location.search).get('tab') === 'signup') go('signup');
+  // default tab from URL + optional lock mode
+  const qs = new URLSearchParams(location.search);
+  const startTab = qs.get('tab') === 'signup' ? 'signup' : 'login';
+  const lockTab = qs.get('lock') === '1';
+  go(startTab);
+  if (lockTab) {
+    document.querySelector('.tabs').style.display = 'none';
+    document.getElementById('p-login').className  = 'panel ' + (startTab === 'login' ? 'show' : '');
+    document.getElementById('p-signup').className = 'panel ' + (startTab === 'signup' ? 'show' : '');
+  }
 
   function go(tab) {
+    if (lockTab) return;
     const toSignup = tab === 'signup';
     document.getElementById('slider').classList.toggle('to-right', toSignup);
     document.getElementById('t-login').className  = 'tab-btn ' + (toSignup ? 'off' : 'on');
@@ -577,7 +587,7 @@
       if (ok) {
         Auth.save(data.token, data.role, data.username);
         toast('Welcome back, ' + data.username + '! ✦', 'ok');
-        setTimeout(() => { location.href = data.role === 'creator' ? 'creator.html' : 'gallery.html'; }, 700);
+        setTimeout(() => { location.href = data.role === 'creator' ? 'Creator.html' : 'Gallery.html'; }, 700);
       } else showErr('login', data.message || 'Invalid credentials.');
     } catch { showErr('login', 'Network error. Please try again.'); }
     btn.textContent = 'Sign In →'; btn.disabled = false;
@@ -603,7 +613,7 @@
       if (ok) {
         Auth.save(data.token, data.role, data.username);
         toast('Account created! Welcome to PixShare ✦', 'ok');
-        setTimeout(() => { location.href = 'gallery.html'; }, 700);
+        setTimeout(() => { location.href = 'Gallery.html'; }, 700);
       } else showErr('signup', data.message || 'Signup failed. Try again.');
     } catch { showErr('signup', 'Network error. Please try again.'); }
     btn.textContent = 'Create Account →'; btn.disabled = false;

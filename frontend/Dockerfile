@@ -6,4 +6,4 @@ COPY . .
 
 EXPOSE 5500
 
-CMD ["python", "-m", "http.server", "5500"]
+CMD ["sh", "-c", "echo '🌐 Frontend running at: http://localhost:5500' && python -m http.server 5500"]

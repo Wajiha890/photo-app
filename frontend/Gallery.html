@@ -192,6 +192,16 @@
     .card-foot {
       display: flex; justify-content: space-between; align-items: center;
     }
+    .card-reacts {
+      display: flex; gap: 0.45rem; margin-top: 0.6rem;
+      font-size: 0.78rem; color: var(--muted);
+    }
+    .card-reacts span {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      padding: 0.15rem 0.5rem;
+      border-radius: 100px;
+    }
 
     .card-location {
       font-size: 0.75rem; color: var(--muted);
@@ -289,6 +299,23 @@
     .avg-rating-display {
       font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem;
     }
+    .react-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .react-btn {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      color: var(--text-dim);
+      border-radius: 100px;
+      padding: 0.45rem 0.8rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .react-btn:hover { border-color: var(--gold); color: var(--text); }
+    .react-btn.active {
+      border-color: var(--gold);
+      background: var(--gold-subtle);
+      color: var(--gold);
+    }
     .your-rating-badge {
       display: inline-flex; align-items: center; gap: 0.3rem;
       background: rgba(245,200,66,0.1); border: 1px solid rgba(245,200,66,0.25);
@@ -332,7 +359,7 @@
 <body>
 
 <nav class="navbar">
-  <a href="gallery.html" class="brand">
+  <a href="Gallery.html" class="brand">
     <div class="brand-gem">📸</div>
     PixShare
   </a>
@@ -395,6 +422,13 @@
 
         <!-- RATING -->
         <div>
+          <div class="sec-lbl">React</div>
+          <div id="react-row" class="react-row"></div>
+        </div>
+
+        <hr class="divider-line">
+
+        <div>
           <div class="sec-lbl">Your Rating</div>
           <div id="star-row" class="i-stars"></div>
           <div id="your-rating"></div>
@@ -421,10 +455,11 @@
 
 <div id="toast-container"></div>
 
-<script src="auth.js"></script>
+<script src="config.js"></script>
+<script src="Auth.js"></script>
 <script>
-  if (!Auth.loggedIn()) location.href = 'login.html';
-  if (Auth.role() === 'creator') location.href = 'creator.html';
+  if (!Auth.loggedIn()) location.href = 'Login.html';
+  if (Auth.role() === 'creator') location.href = 'Creator.html';
   document.getElementById('nav-user').textContent = Auth.username();
 
   let curId = null, curRating = 0;
@@ -469,13 +504,19 @@
               ${img.avg_rating > 0 ? '<span>' + img.avg_rating.toFixed(1) + '</span>' : ''}
             </span>
           </div>
+          <div class="card-reacts">
+            <span>👍 ${img.reaction_counts?.like || 0}</span>
+            <span>😊 ${img.reaction_counts?.happy || 0}</span>
+            <span>❤️ ${img.reaction_counts?.love || 0}</span>
+            ${img.my_rating ? `<span>⭐ You: ${img.my_rating}/5</span>` : ''}
+          </div>
         </div>
       </div>`;
     }).join('');
   }
 
   async function loadAll() {
-    const { ok, data } = await apiFetch('/images');
+    const { ok, data } = await apiFetch('/images', { headers: Auth.headers() });
     if (ok) renderGallery(data);
     else toast('Failed to load gallery', 'error');
   }
@@ -486,7 +527,7 @@
     document.getElementById('gallery').innerHTML = `<div style="grid-column:1/-1"><div class="loader"><div class="spinner"></div></div></div>`;
     document.getElementById('g-head').textContent = `Results for "${q}"`;
     document.getElementById('clear-btn').classList.add('show');
-    const { ok, data } = await apiFetch('/images/search?q=' + encodeURIComponent(q));
+    const { ok, data } = await apiFetch('/images/search?q=' + encodeURIComponent(q), { headers: Auth.headers() });
     if (ok) renderGallery(data);
     else toast('Search failed', 'error');
   }
@@ -501,8 +542,9 @@
   /* ═══ MODAL ═══ */
   async function openModal(id) {
     curId = id; curRating = 0;
-    const { ok, data: img } = await apiFetch('/images/' + id);
+    const { ok, data: img } = await apiFetch('/images/' + id, { headers: Auth.headers() });
     if (!ok) { toast('Failed to load', 'error'); return; }
+    curRating = img.my_rating || 0;
 
     document.getElementById('m-title').textContent = img.title;
     const ph = document.getElementById('m-photo');
@@ -517,10 +559,35 @@
     meta.push(`<div class="meta-row"><span class="meta-icon">🗓</span>${fmtDate(img.created_at)}</div>`);
     document.getElementById('m-meta').innerHTML = meta.join('');
 
-    renderStars(0, img);
+    renderStars(curRating, img);
+    renderReactions(img);
     await loadComments(id);
     document.getElementById('c-inp').value = '';
     document.getElementById('img-modal').classList.add('open');
+  }
+
+  function renderReactions(imgData) {
+    const counts = imgData.reaction_counts || { like: 0, happy: 0, love: 0 };
+    const my = imgData.my_reaction || "";
+    const mk = (type, emoji, label) =>
+      `<button class="react-btn ${my === type ? 'active' : ''}" onclick="event.stopPropagation();submitReaction('${type}')">${emoji} ${label} (${counts[type] || 0})</button>`;
+    document.getElementById('react-row').innerHTML = [
+      mk("like", "👍", "Like"),
+      mk("happy", "😊", "Happy"),
+      mk("love", "❤️", "Love"),
+    ].join('');
+  }
+
+  async function submitReaction(type) {
+    const { ok, data } = await apiFetch('/reactions', {
+      method: 'POST', headers: Auth.headers(),
+      body: JSON.stringify({ image_id: curId, reaction_type: type })
+    });
+    if (!ok) { toast(data.message || 'Could not save reaction', 'error'); return; }
+    toast('Reaction saved', 'success');
+    const fresh = await apiFetch('/images/' + curId, { headers: Auth.headers() });
+    if (fresh.ok) renderReactions(fresh.data);
+    await loadAll();
   }
 
   function renderStars(sel, imgData) {
@@ -560,11 +627,18 @@
     });
     if (ok) {
       toast('Rated ' + v + ' ★', 'success');
-      const r = await apiFetch('/ratings/' + curId);
-      if (r.ok) {
-        document.getElementById('avg-info').textContent =
-          `Community avg: ${r.data.avg.toFixed(1)} / 5 (${r.data.count} votes)`;
+      const fresh = await apiFetch('/images/' + curId, { headers: Auth.headers() });
+      if (fresh.ok) {
+        curRating = fresh.data.my_rating || v;
+        renderStars(curRating, fresh.data);
+      } else {
+        const r = await apiFetch('/ratings/' + curId);
+        if (r.ok) {
+          document.getElementById('avg-info').textContent =
+            `Community avg: ${r.data.avg.toFixed(1)} / 5 (${r.data.count} votes)`;
+        }
       }
+      await loadAll(); // refresh gallery cards immediately (no manual page refresh)
     } else toast('Could not save rating', 'error');
   }
 

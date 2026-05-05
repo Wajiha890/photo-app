@@ -281,6 +281,7 @@
     }
     .rating-pill .rp-user { font-weight: 600; color: var(--text-dim); }
     .rating-pill .rp-val { color: var(--star); font-weight: 700; letter-spacing: 0.04em; }
+    .rp-val.react { color: var(--gold); }
 
     .comment-card {
       background: rgba(255,255,255,0.03);
@@ -312,7 +313,7 @@
 <body>
 
 <nav class="navbar">
-  <a href="creator.html" class="brand">
+  <a href="Creator.html" class="brand">
     <div class="brand-gem">📸</div>
     PixShare
   </a>
@@ -418,10 +419,11 @@
 
 <div id="toast-container"></div>
 
-<script src="auth.js"></script>
+<script src="config.js"></script>
+<script src="Auth.js"></script>
 <script>
-  if (!Auth.loggedIn()) location.href = 'login.html';
-  if (Auth.role() !== 'creator') location.href = 'gallery.html';
+  if (!Auth.loggedIn()) location.href = 'Login.html';
+  if (Auth.role() !== 'creator') location.href = 'Gallery.html';
   document.getElementById('nav-username').textContent = Auth.username();
 
   function updatePreview(url) {
@@ -518,6 +520,21 @@
         </div>
       </div>
       <div class="modal-right-panel">
+        <div class="detail-section">
+          <div class="detail-title">Reactions</div>
+          <div style="font-size:0.82rem;color:var(--muted);margin-bottom:0.55rem;">
+            👍 ${data.reaction_counts?.like || 0} &nbsp;|&nbsp;
+            😊 ${data.reaction_counts?.happy || 0} &nbsp;|&nbsp;
+            ❤️ ${data.reaction_counts?.love || 0}
+          </div>
+          ${data.reactions && data.reactions.length
+            ? data.reactions.map(r => `
+              <div class="rating-pill">
+                <span class="rp-user">${esc(r.username)}</span>
+                <span class="rp-val react">${r.reaction_type === 'like' ? '👍 Like' : r.reaction_type === 'happy' ? '😊 Happy' : '❤️ Love'}</span>
+              </div>`).join('')
+            : `<div class="empty-state-sm">No reactions yet.</div>`}
+        </div>
         <div class="detail-section">
           <div class="detail-title">Ratings</div>
           ${data.ratings.length

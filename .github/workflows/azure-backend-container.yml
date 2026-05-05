@@ -1,0 +1,46 @@
+# Optional: build backend image and deploy to Azure Web App for Containers.
+# Set repository secrets before enabling:
+#   AZURE_CREDENTIALS  (output of: az ad sp create-for-rbac --sdk-auth)
+#   AZURE_RESOURCE_GROUP, AZURE_WEBAPP_NAME, AZURE_REGISTRY (ACR login server), AZURE_REGISTRY_USERNAME, AZURE_REGISTRY_PASSWORD
+#
+# Trigger manually from GitHub Actions tab until secrets are configured.
+
+name: Azure backend (container)
+
+on:
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: pixshare-backend
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.AZURE_REGISTRY }}
+          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.AZURE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          slot-name: production
+          images: ${{ secrets.AZURE_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}

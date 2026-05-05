@@ -1,12 +1,37 @@
-version: "3.9"
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: pixshare
+      POSTGRES_USER: pixshare_user
+      POSTGRES_PASSWORD: pixshare_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixshare_user -d pixshare"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build: ./backend
+    # Use Flask dev server locally; production image uses Gunicorn (see backend/Dockerfile).
+    command: ["sh", "-c", "exec python app.py"]
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./backend:/app
+    environment:
+      DATABASE_URL: postgresql://pixshare_user:pixshare_password@postgres:5432/pixshare
+      SECRET_KEY: pixshare-secret-key-change-in-prod
+      PORT: "5000"
+      FLASK_DEBUG: "1"
+      CORS_ORIGINS: "*"
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -16,3 +41,6 @@ services:
       - ./frontend:/app
     depends_on:
       - backend
+
+volumes:
+  postgres_data:

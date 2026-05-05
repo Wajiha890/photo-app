@@ -13,6 +13,7 @@ class User(db.Model):
     images = db.relationship('Image', backref='uploader', lazy=True, cascade="all, delete-orphan")
     comments = db.relationship('Comment', backref='author', lazy=True, cascade="all, delete-orphan")
     ratings = db.relationship('Rating', backref='rater', lazy=True, cascade="all, delete-orphan")
+    reactions = db.relationship('Reaction', backref='reactor', lazy=True, cascade="all, delete-orphan")
 
 class Image(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -26,6 +27,7 @@ class Image(db.Model):
 
     comments = db.relationship('Comment', backref='image', lazy=True, cascade="all, delete-orphan")
     ratings = db.relationship('Rating', backref='image', lazy=True, cascade="all, delete-orphan")
+    reactions = db.relationship('Reaction', backref='image', lazy=True, cascade="all, delete-orphan")
 
 
 class Comment(db.Model):
@@ -45,4 +47,16 @@ class Rating(db.Model):
     # Prevent duplicate rating by same user on same image
     __table_args__ = (
         db.UniqueConstraint('image_id', 'user_id', name='unique_user_image_rating'),
+    )
+
+
+class Reaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image_id = db.Column(db.Integer, db.ForeignKey('image.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    reaction_type = db.Column(db.String(20), nullable=False)  # like | happy | love
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        db.UniqueConstraint('image_id', 'user_id', name='unique_user_image_reaction'),
     )
