@@ -5,4 +5,4 @@
  * Example after deploying App Service:
  *   window.__PX_API_BASE__ = "https://pixshare-api.azurewebsites.net";
  */
-window.__PX_API_BASE__ = "";
+window.__PX_API_BASE__ = "https://pixshare-api.azurewebsites.net";
