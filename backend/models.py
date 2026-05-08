@@ -22,6 +22,8 @@ class Image(db.Model):
     location = db.Column(db.String(200))
     people = db.Column(db.String(200))
     image_url = db.Column(db.String(500), nullable=False)
+    media_type = db.Column(db.String(20), nullable=False, default="image")
+    upload_method = db.Column(db.String(20), nullable=False, default="url")
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 

@@ -185,7 +185,7 @@
     .card-cap {
       font-size: 0.8rem; color: var(--muted); font-weight: 300;
       display: -webkit-box;
-      -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+      line-clamp: 2; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
       min-height: 2.1em; margin-bottom: 0.75rem; line-height: 1.5;
     }
 
@@ -375,7 +375,7 @@
   <div class="gallery-hero">
     <p class="gh-eyebrow">Community Gallery</p>
     <h1 class="gh-title">Discover <em>beautiful</em><br>moments</h1>
-    <p class="gh-sub">Photos shared by our creators — browse, comment &amp; rate</p>
+    <p class="gh-sub">Images and videos shared by our creators — browse, comment &amp; rate</p>
 
     <div class="search-wrap">
       <div class="search-box">
@@ -409,7 +409,7 @@
     <div class="modal-split">
 
       <div class="modal-img-side">
-        <img id="m-photo" class="modal-photo" src="" alt="">
+        <div id="m-media"></div>
         <div class="modal-photo-overlay"></div>
       </div>
 
@@ -472,26 +472,24 @@
     if (!imgs || !imgs.length) {
       g.innerHTML = `<div class="empty" style="grid-column:1/-1">
         <span class="empty-icon">📷</span>
-        <h3>No photos yet</h3>
+        <h3>No media yet</h3>
         <p>Creators are uploading — check back soon!</p></div>`;
       cnt.textContent = ''; return;
     }
 
-    cnt.textContent = imgs.length + ' photo' + (imgs.length !== 1 ? 's' : '');
+    cnt.textContent = imgs.length + ' media item' + (imgs.length !== 1 ? 's' : '');
 
     g.innerHTML = imgs.map((img, idx) => {
       const stars = [1,2,3,4,5].map(i =>
         `<span class="cstar ${i <= Math.round(img.avg_rating) ? 'on' : 'off'}">★</span>`
       ).join('');
       const delay = Math.min(idx * 0.04, 0.5);
+      const media = renderMedia(img, 'card-img');
       return `<div class="photo-card" style="animation-delay:${delay}s" onclick="openModal(${img.id})">
         <div class="card-img-wrap">
-          ${img.image_url
-            ? `<img class="card-img" src="${esc(img.image_url)}" alt="${esc(img.title)}" loading="lazy"
-                onerror="this.outerHTML='<div class=card-no-img>🌄</div>'">`
-            : `<div class="card-no-img">🌄</div>`}
+          ${media}
           <div class="card-hover-overlay">
-            <span class="overlay-tag">View Photo</span>
+            <span class="overlay-tag">View Media</span>
           </div>
         </div>
         <div class="card-body">
@@ -521,6 +519,16 @@
     else toast('Failed to load gallery', 'error');
   }
 
+  function renderMedia(item, className) {
+    const src = item.media_url || item.image_url || '';
+    if (!src) return `<div class="card-no-img">🌄</div>`;
+    if (item.media_type === 'video') {
+      return `<video class="${className}" src="${esc(src)}" muted preload="metadata"></video>`;
+    }
+    return `<img class="${className}" src="${esc(src)}" alt="${esc(item.title)}" loading="lazy"
+      onerror="this.outerHTML='<div class=card-no-img>🌄</div>'">`;
+  }
+
   async function doSearch() {
     const q = document.getElementById('sq').value.trim();
     if (!q) { loadAll(); return; }
@@ -547,8 +555,7 @@
     curRating = img.my_rating || 0;
 
     document.getElementById('m-title').textContent = img.title;
-    const ph = document.getElementById('m-photo');
-    ph.src = img.image_url || ''; ph.alt = img.title;
+    document.getElementById('m-media').innerHTML = renderModalMedia(img);
 
     document.getElementById('m-cap').textContent = img.caption || '';
 
@@ -564,6 +571,15 @@
     await loadComments(id);
     document.getElementById('c-inp').value = '';
     document.getElementById('img-modal').classList.add('open');
+  }
+
+  function renderModalMedia(item) {
+    const src = item.media_url || item.image_url || '';
+    if (!src) return `<div class="card-no-img modal-photo">🌄</div>`;
+    if (item.media_type === 'video') {
+      return `<video class="modal-photo" src="${esc(src)}" controls autoplay muted></video>`;
+    }
+    return `<img class="modal-photo" src="${esc(src)}" alt="${esc(item.title)}">`;
   }
 
   function renderReactions(imgData) {
@@ -674,7 +690,10 @@
     else toast(data.message || 'Failed to post', 'error');
   }
 
-  function closeModal() { document.getElementById('img-modal').classList.remove('open'); }
+  function closeModal() {
+    document.getElementById('img-modal').classList.remove('open');
+    document.getElementById('m-media').innerHTML = '';
+  }
   function bgClose(e) { if (e.target.id === 'img-modal') closeModal(); }
 
   function esc(str) {

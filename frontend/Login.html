@@ -533,9 +533,9 @@
   }
 
   document.addEventListener('click', e => {
-    e.preventDefault();
+    if (e.target.closest('.auth-wrap, #toasts')) return;
     window.location.href = 'index.html';
-  }, true);
+  });
 
   function go(tab) {
     if (lockTab) return;

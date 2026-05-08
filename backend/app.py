@@ -1,16 +1,29 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from config import Config
 from models import db, Image, Comment, Rating, User, Reaction
+from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import inspect, text
 import jwt
 import datetime
 import os
+import uuid
 from functools import wraps
 
 app = Flask(__name__)
 app.config.from_object(Config)
+app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
+MAX_MEDIA_SIZE = 50 * 1024 * 1024
+ALLOWED_MEDIA_TYPES = {"image", "video"}
+ALLOWED_EXTENSIONS = {
+    "image": {"jpg", "jpeg", "png", "gif", "webp"},
+    "video": {"mp4", "webm", "ogg", "mov"},
+}
+ALLOWED_MIME_PREFIXES = {"image": "image/", "video": "video/"}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 db.init_app(app)
 
@@ -80,10 +93,49 @@ def get_optional_user_id():
     return data.get("user_id") if data else None
 
 
+def allowed_file(filename, media_type):
+    if "." not in filename:
+        return False
+    ext = filename.rsplit(".", 1)[1].lower()
+    return ext in ALLOWED_EXTENSIONS.get(media_type, set())
+
+
+def validate_media_url(url):
+    return url.startswith("http://") or url.startswith("https://")
+
+
+def save_uploaded_media(file, media_type):
+    if not file or not file.filename:
+        return None, "Media file is required"
+    if media_type not in ALLOWED_MEDIA_TYPES:
+        return None, "Media type must be image or video"
+    if not allowed_file(file.filename, media_type):
+        return None, f"Unsupported {media_type} file type"
+    if file.content_type and not file.content_type.startswith(ALLOWED_MIME_PREFIXES[media_type]):
+        return None, f"Selected file does not match {media_type} media type"
+
+    file.stream.seek(0, os.SEEK_END)
+    size = file.stream.tell()
+    file.stream.seek(0)
+    if size > MAX_MEDIA_SIZE:
+        return None, "File is too large. Maximum size is 50MB"
+
+    original = secure_filename(file.filename)
+    ext = original.rsplit(".", 1)[1].lower()
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    file.save(os.path.join(UPLOAD_FOLDER, filename))
+    return request.host_url.rstrip("/") + "/uploads/" + filename, None
+
+
 # HEALTH
 @app.route("/")
 def home():
     return jsonify({"message": "PixShare API Running ✨"})
+
+
+@app.route("/uploads/<path:filename>")
+def uploaded_media(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 
 # AUTH ROUTES (same as before)
@@ -144,6 +196,8 @@ def image_to_dict(img, user_id=None):
     return {
         "id": img.id, "title": img.title, "caption": img.caption,
         "location": img.location, "people": img.people, "image_url": img.image_url,
+        "media_url": img.image_url, "media_type": getattr(img, "media_type", "image"),
+        "upload_method": getattr(img, "upload_method", "url"),
         "created_at": img.created_at.isoformat() if img.created_at else None,
         "uploader": img.uploader.username if img.uploader else "Unknown",
         "avg_rating": avg_rating, "rating_count": len(ratings), "comment_count": len(img.comments),
@@ -167,13 +221,46 @@ def get_image(image_id):
 @app.route("/images", methods=["POST"])
 @creator_required
 def add_image():
-    data = request.json
-    if not data.get("title") or not data.get("image_url"):
-        return jsonify({"message": "Title and image URL are required"}), 400
-    new_image = Image(**{k: data.get(k) for k in ["title","caption","location","people","image_url"]}, user_id=request.user_id)
+    if request.content_type and request.content_type.startswith("multipart/form-data"):
+        data = request.form
+        media_type = data.get("media_type", "image").strip().lower()
+        upload_method = data.get("upload_method", "local").strip().lower()
+    else:
+        data = request.get_json(silent=True) or {}
+        media_type = data.get("media_type", "image").strip().lower()
+        upload_method = data.get("upload_method", "url").strip().lower()
+
+    title = data.get("title", "").strip()
+    if not title:
+        return jsonify({"message": "Title is required"}), 400
+    if media_type not in ALLOWED_MEDIA_TYPES:
+        return jsonify({"message": "Media type must be image or video"}), 400
+    if upload_method not in {"local", "url"}:
+        return jsonify({"message": "Upload method must be local or url"}), 400
+
+    if upload_method == "local":
+        media_url, error = save_uploaded_media(request.files.get("media_file"), media_type)
+        if error:
+            return jsonify({"message": error}), 400
+    else:
+        media_url = data.get("media_url") or data.get("image_url") or ""
+        media_url = media_url.strip()
+        if not media_url or not validate_media_url(media_url):
+            return jsonify({"message": "A valid media URL is required"}), 400
+
+    new_image = Image(
+        title=title,
+        caption=data.get("caption", "").strip(),
+        location=data.get("location", "").strip(),
+        people=data.get("people", "").strip(),
+        image_url=media_url,
+        media_type=media_type,
+        upload_method=upload_method,
+        user_id=request.user_id
+    )
     db.session.add(new_image)
     db.session.commit()
-    return jsonify({"message": "Image uploaded successfully", "id": new_image.id}), 201
+    return jsonify({"message": "Media uploaded successfully", "id": new_image.id, "media_url": media_url}), 201
 
 @app.route("/images/<int:image_id>", methods=["DELETE"])
 @creator_required
@@ -217,6 +304,9 @@ def get_image_stats(image_id):
         "image_id": image_id,
         "title": img.title,
         "image_url": img.image_url,
+        "media_url": img.image_url,
+        "media_type": getattr(img, "media_type", "image"),
+        "upload_method": getattr(img, "upload_method", "url"),
         "avg_rating": round(sum(r.value for r in ratings)/len(ratings), 1) if ratings else 0,
         "rating_count": len(ratings),
         "ratings": [{"username": r.rater.username if r.rater else "Deleted", "value": r.value} for r in ratings],
@@ -337,6 +427,13 @@ def init_db():
     """Create tables and seed default creator (safe under multi-worker startup)."""
     with app.app_context():
         db.create_all()
+        inspector = inspect(db.engine)
+        columns = {col["name"] for col in inspector.get_columns("image")}
+        if "media_type" not in columns:
+            db.session.execute(text("ALTER TABLE image ADD COLUMN media_type VARCHAR(20) DEFAULT 'image' NOT NULL"))
+        if "upload_method" not in columns:
+            db.session.execute(text("ALTER TABLE image ADD COLUMN upload_method VARCHAR(20) DEFAULT 'url' NOT NULL"))
+        db.session.commit()
         if User.query.filter_by(role="creator").first():
             return
         try:
