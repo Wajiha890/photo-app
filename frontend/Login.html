@@ -36,6 +36,7 @@
       background: var(--ink);
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
+      cursor: pointer;
     }
 
     /* ═══ FULL-SCREEN BG ═══ */
@@ -122,6 +123,7 @@
       z-index: 10;
       width: min(460px, 94vw);
       animation: enterCard 0.9s cubic-bezier(.22,1,.36,1) both;
+      cursor: default;
     }
 
     @keyframes enterCard {
@@ -529,6 +531,11 @@
     document.getElementById('p-login').className  = 'panel ' + (startTab === 'login' ? 'show' : '');
     document.getElementById('p-signup').className = 'panel ' + (startTab === 'signup' ? 'show' : '');
   }
+
+  document.addEventListener('click', e => {
+    e.preventDefault();
+    window.location.href = 'index.html';
+  }, true);
 
   function go(tab) {
     if (lockTab) return;
