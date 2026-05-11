@@ -162,7 +162,7 @@ def save_uploaded_media(file, media_type):
 # HEALTH
 @app.route("/")
 def home():
-    return jsonify({"message": "PixShare API Running ✨"})
+    return jsonify({"message": "Lumina API Running ✨"})
 
 
 @app.route("/uploads/<path:filename>")

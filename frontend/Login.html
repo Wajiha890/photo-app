@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>PixShare — Sign In</title>
+  <title>Lumina — Sign In</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -426,7 +426,7 @@
   <div class="brand-header">
     <a href="index.html" class="brand-link">
       <div class="brand-gem">📸</div>
-      <span class="brand-name">PixShare</span>
+      <span class="brand-name">Lumina</span>
     </a>
   </div>
 
@@ -619,7 +619,7 @@
       });
       if (ok) {
         Auth.save(data.token, data.role, data.username);
-        toast('Account created! Welcome to PixShare ✦', 'ok');
+        toast('Account created! Welcome to Lumina ✦', 'ok');
         setTimeout(() => { location.href = 'Gallery.html'; }, 700);
       } else showErr('signup', data.message || 'Signup failed. Try again.');
     } catch { showErr('signup', 'Network error. Please try again.'); }

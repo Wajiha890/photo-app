@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: pixshare
-      POSTGRES_USER: pixshare_user
-      POSTGRES_PASSWORD: pixshare_password
+      POSTGRES_DB: lumina
+      POSTGRES_USER: lumina_user
+      POSTGRES_PASSWORD: lumina_password
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pixshare_user -d pixshare"]
+      test: ["CMD-SHELL", "pg_isready -U lumina_user -d lumina"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,8 +24,8 @@ services:
     volumes:
       - ./backend:/app
     environment:
-      DATABASE_URL: postgresql://pixshare_user:pixshare_password@postgres:5432/pixshare
-      SECRET_KEY: pixshare-secret-key-change-in-prod
+      DATABASE_URL: postgresql://lumina_user:lumina_password@postgres:5432/lumina
+      SECRET_KEY: lumina-secret-key-change-in-prod
       PORT: "5000"
       FLASK_DEBUG: "1"
       CORS_ORIGINS: "*"

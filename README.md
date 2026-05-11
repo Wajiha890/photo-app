@@ -1,6 +1,6 @@
-# PixShare
+# Lumina
 
-**PixShare** is a full-stack photo and video sharing web application built for the **Scalable Software Solutions** module at Ulster University. Users can upload, explore, rate, comment and react to images and videos. Creators manage content while consumers browse and interact.
+**Lumina** is a full-stack photo and video sharing web application built for the **Scalable Software Solutions** module at Ulster University. Users can upload, explore, rate, comment and react to images and videos. Creators manage content while consumers browse and interact.
 
 ---
 
@@ -8,8 +8,8 @@
 
 | Component | URL |
 |-----------|-----|
-| Frontend | https://pixsharestore2026.z1.web.core.windows.net |
-| Backend API | https://pixshare-api.azurewebsites.net |
+| Frontend | https://luminastore2026.z1.web.core.windows.net |
+| Backend API | https://lumina-api.azurewebsites.net |
 
 ---
 
@@ -49,11 +49,11 @@ Browser
    │
    ├── Frontend (Static HTML/JS/CSS)
    │       └── Azure Blob Storage ($web container)
-   │               https://pixsharestore2026.z1.web.core.windows.net
+   │               https://luminastore2026.z1.web.core.windows.net
    │
    └── Backend API (Flask + Gunicorn in Docker)
            └── Azure App Service
-                   https://pixshare-api.azurewebsites.net
+                   https://lumina-api.azurewebsites.net
                    │
                    ├── Azure PostgreSQL Flexible Server
                    │       (users, images, comments, ratings, reactions)
@@ -121,33 +121,33 @@ docker compose up --build
 
 | Resource | Name | Region |
 |----------|------|--------|
-| Resource Group | pixshare-rg | Norway East |
-| Container Registry | pixshareacr | Norway East |
-| PostgreSQL Flexible Server | pixshare-db | Norway East |
-| App Service Plan | pixshare-plan | Sweden Central |
-| App Service | pixshare-api | Sweden Central |
-| Storage Account | pixsharestore2026 | Norway East |
+| Resource Group | lumina-rg | Norway East |
+| Container Registry | luminaacr | Norway East |
+| PostgreSQL Flexible Server | lumina-db | Norway East |
+| App Service Plan | lumina-plan | Sweden Central |
+| App Service | lumina-api | Sweden Central |
+| Storage Account | luminastore2026 | Norway East |
 
 ### Deploy Backend
 
 ```bash
 # Login to Azure and ACR
 az login
-az acr login --name pixshareacr
+az acr login --name luminaacr
 
 # Build and push Docker image
-docker build -t pixshareacr.azurecr.io/pixshare-backend:latest ./backend
-docker push pixshareacr.azurecr.io/pixshare-backend:latest
+docker build -t luminaacr.azurecr.io/lumina-backend:latest ./backend
+docker push luminaacr.azurecr.io/lumina-backend:latest
 
 # Restart App Service to pull new image
-az webapp restart --name pixshare-api --resource-group pixshare-rg
+az webapp restart --name lumina-api --resource-group lumina-rg
 ```
 
 ### Deploy Frontend
 
 ```bash
 az storage blob upload-batch \
-  --account-name pixsharestore2026 \
+  --account-name luminastore2026 \
   --source ./frontend \
   --destination '$web' \
   --overwrite
@@ -177,10 +177,10 @@ az storage blob upload-batch \
 ## Viewing Data in Azure
 
 **Media files (photos/videos):**
-> Azure Portal → pixsharestore2026 → Containers → media
+> Azure Portal → luminastore2026 → Containers → media
 
 **Database metadata (titles, comments, ratings):**
-> Azure Portal → pixshare-db → Connect → run SQL queries against `pixshare` database
+> Azure Portal → lumina-db → Connect → run SQL queries against `lumina` database
 
 ---
 
