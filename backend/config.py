@@ -14,9 +14,6 @@ class Config:
     # Comma-separated origins, or "*" for all (dev only). Example: https://app.azurestaticapps.net
     CORS_ORIGINS_RAW = os.environ.get("CORS_ORIGINS", "*")
 
-    # Azure Blob Storage connection string for media uploads
-    AZURE_STORAGE_CONNECTION_STRING = os.environ.get("AZURE_STORAGE_CONNECTION_STRING", "")
-
     # Azure PostgreSQL requires TLS; auto-enable for Azure hostnames unless URL already sets sslmode.
     _engine_options = {}
     if db_url.startswith("postgresql") and "sslmode=" not in db_url.lower():
