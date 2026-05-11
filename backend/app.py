@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import inspect, text
+from azure.storage.blob import BlobServiceClient, ContentSettings, generate_blob_sas, BlobSasPermissions
 import jwt
 import datetime
 import os
@@ -123,6 +124,37 @@ def save_uploaded_media(file, media_type):
     original = secure_filename(file.filename)
     ext = original.rsplit(".", 1)[1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
+
+    # --- Azure Blob Storage (private container + SAS URL) ---
+    conn_str = app.config.get("AZURE_STORAGE_CONNECTION_STRING", "")
+    if conn_str:
+        try:
+            blob_service  = BlobServiceClient.from_connection_string(conn_str)
+            blob_client   = blob_service.get_blob_client(container="media", blob=filename)
+            content_type  = file.content_type or ("image/jpeg" if media_type == "image" else "video/mp4")
+            blob_client.upload_blob(
+                file.stream,
+                overwrite=True,
+                content_settings=ContentSettings(content_type=content_type)
+            )
+            # Generate a read-only SAS URL valid for 5 years
+            sas_token = generate_blob_sas(
+                account_name=blob_service.account_name,
+                container_name="media",
+                blob_name=filename,
+                account_key=blob_service.credential.account_key,
+                permission=BlobSasPermissions(read=True),
+                expiry=datetime.datetime.utcnow() + datetime.timedelta(days=1825)
+            )
+            sas_url = (
+                f"https://{blob_service.account_name}.blob.core.windows.net"
+                f"/media/{filename}?{sas_token}"
+            )
+            return sas_url, None
+        except Exception as e:
+            return None, f"Azure Storage upload failed: {str(e)}"
+
+    # --- Local fallback (dev without Azure) ---
     file.save(os.path.join(UPLOAD_FOLDER, filename))
     return request.host_url.rstrip("/") + "/uploads/" + filename, None
 
