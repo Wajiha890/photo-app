@@ -125,20 +125,25 @@ def save_uploaded_media(file, media_type):
     ext = original.rsplit(".", 1)[1].lower()
     filename = f"{uuid.uuid4().hex}.{ext}"
 
-    # Upload to Azure Blob Storage if connection string is configured
+    # Upload to Azure Blob Storage if connection string is configured.
+    # Files go into the $web container under media/ so they are served
+    # publicly via the static website endpoint (blob-level public access
+    # is blocked by university policy, but $web is served by the static
+    # website feature which has its own public endpoint).
     conn_str = app.config.get("AZURE_STORAGE_CONNECTION_STRING", "")
     if conn_str:
         try:
             blob_service = BlobServiceClient.from_connection_string(conn_str)
-            container = "media"
-            blob_client = blob_service.get_blob_client(container=container, blob=filename)
+            blob_path = f"media/{filename}"          # stored as media/<uuid>.ext in $web
+            blob_client = blob_service.get_blob_client(container="$web", blob=blob_path)
             content_type = file.content_type or ("image/jpeg" if media_type == "image" else "video/mp4")
             blob_client.upload_blob(
                 file.stream,
                 overwrite=True,
                 content_settings=ContentSettings(content_type=content_type)
             )
-            blob_url = f"https://pixsharestore2026.blob.core.windows.net/{container}/{filename}"
+            # Served via static website endpoint (no public-blob-access needed)
+            blob_url = f"https://pixsharestore2026.z16.web.core.windows.net/media/{filename}"
             return blob_url, None
         except Exception as e:
             return None, f"Azure Storage upload failed: {str(e)}"
