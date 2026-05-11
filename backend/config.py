@@ -8,7 +8,7 @@ class Config:
         db_url = db_url.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URI = db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.environ.get("SECRET_KEY", "pixshare-secret-key-change-in-prod")
+    SECRET_KEY = os.environ.get("SECRET_KEY", "lumina-secret-key-change-in-prod")
     JWT_EXPIRY_HOURS = 24
 
     # Comma-separated origins, or "*" for all (dev only). Example: https://app.azurestaticapps.net

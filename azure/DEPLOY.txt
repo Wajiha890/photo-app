@@ -1,4 +1,4 @@
-PixShare — Azure deployment (overview)
+Lumina — Azure deployment (overview)
 ========================================
 
 Architecture
@@ -10,17 +10,17 @@ Architecture
 1) PostgreSQL on Azure
 -----------------------
 - Create "Azure Database for PostgreSQL flexible server".
-- Create database (e.g. pixshare) and a user with password.
+- Create database (e.g. lumina) and a user with password.
 - In Networking: allow Azure services; for App Service use private access or firewall rule for App Service outbound IPs.
 - Connection string form:
-  postgresql://USER:PASSWORD@HOST.postgres.database.azure.com:5432/pixshare?sslmode=require
+  postgresql://USER:PASSWORD@HOST.postgres.database.azure.com:5432/lumina?sslmode=require
 - App Service application setting: DATABASE_URL = (that URL). The app adds ssl if host contains database.azure.com when POSTGRES_SSLMODE is unset.
 
 2) Backend — App Service (container)
 ------------------------------------
 - Create Container Registry (ACR), build and push image from /backend:
-  docker build -t YOUR_ACR.azurecr.io/pixshare-backend:latest ./backend
-  docker push YOUR_ACR.azurecr.io/pixshare-backend:latest
+  docker build -t YOUR_ACR.azurecr.io/lumina-backend:latest ./backend
+  docker push YOUR_ACR.azurecr.io/lumina-backend:latest
 - Create App Service (Linux, container), pull from ACR.
 - Application settings (minimum):
   - DATABASE_URL
